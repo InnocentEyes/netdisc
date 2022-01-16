@@ -1,0 +1,51 @@
+spring:
+  datasource:
+    druid:
+      username: root
+      password: qzl2009yya
+      url: jdbc:mysql://localhost:3306/fastdfs
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      stat-view-servlet:
+        url-pattern: /druid/
+        enabled: true
+        login-username: lyy
+        login-password: 123456
+      web-stat-filter:
+        enabled: true
+        url-pattern: /*
+        exclusions: '*.js,*.gif,*.jpg,*.png,*.css,*.ico,/druid/*'
+      filter:
+        stat:
+          merge-sql: true
+          slow-sql-millis: 1000
+        wall:
+          enabled: true
+          config:
+            drop-table-allow: false
+            alter-table-allow: false
+            select-into-outfile-allow: false
+  jdbc:
+    template:
+      query-timeout: 3
+  redis:
+    port: 6379
+    host: 192.168.119.130
+    database: 1
+    client-type: jedis
+    jedis:
+      pool:
+        enabled: true
+        max-active: 10
+  application:
+    name: netdisc
+  banner:
+    image:
+      location: banner.txt
+mybatis-plus:
+  config-location: classpath:mybatis.xml
+logging:
+  level:
+    com:
+      qzlnode: info
+  file:
+    name: C:/log/netdisc.log

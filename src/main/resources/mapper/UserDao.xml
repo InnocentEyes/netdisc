@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qzlnode.netdisc.dao.UserDao">
+
+  <resultMap id="user" type="com.qzlnode.netdisc.pojo.UserInfo">
+    <id column="id" property="id"/>
+    <id column="avatar_url" property="avatarUrl"/>
+    <id column="name" property="name"/>
+    <id column="real_name" property="realName"/>
+    <id column="account" property="account"/>
+    <id column="password" property="password"/>
+    <id column="create_at" jdbcType="TIMESTAMP" javaType="java.util.Date" property="createAt"/>
+  </resultMap>
+</mapper>
