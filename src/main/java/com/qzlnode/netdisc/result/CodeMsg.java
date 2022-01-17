@@ -1,5 +1,7 @@
 package com.qzlnode.netdisc.result;
 
+import com.sun.tools.javac.jvm.Code;
+
 /**
  * @author qzlzzz
  */
@@ -36,6 +38,11 @@ public class CodeMsg {
     public static CodeMsg REGISTRATION_FAILED = new CodeMsg(500310,"注册失败");
 
     public static CodeMsg USER_MESSAGE_EMPTY = new CodeMsg(500311,"用户信息缺失");
+
+    /**
+     * 更新模块
+     */
+    public static CodeMsg UPDATE_ERROR = new CodeMsg(500410,"更新失败");
 
     public CodeMsg() {
     }

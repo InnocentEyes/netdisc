@@ -21,6 +21,7 @@ public class FastDFS {
 
     static {
         try {
+            System.out.println("----------loading FastDFS----------");
             ClientGlobal.init("fastdfs.xml");
             TrackerClient trackerClient = new TrackerClient();
             TrackerServer trackerServer = trackerClient.getTrackerServer();

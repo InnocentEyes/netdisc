@@ -23,7 +23,7 @@ public class Result<T> {
         return new Result<T>(codeMsg);
     }
 
-    public static  <T> Result<T> setCodeMsg(CodeMsg codeMsg){
+    public static  <T> Result<T> success(CodeMsg codeMsg){
         return new Result<T>(codeMsg);
     }
 

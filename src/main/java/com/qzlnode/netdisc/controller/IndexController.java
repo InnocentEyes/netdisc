@@ -43,13 +43,13 @@ public class IndexController {
             return Result.error(CodeMsg.PASSWORD_ERROR);
         }
         logger.info("user {} named {} login success.",userMessage.getId(),userMessage.getName());
-        return Result.success(userInfo,CodeMsg.SUCCESS);
+        return Result.success(userMessage,CodeMsg.SUCCESS);
     }
 
     @PostMapping(value = "/register",produces = MediaType.APPLICATION_JSON_VALUE)
-    public Result register(@RequestBody UserInfo userInfo){
-        userInfo = Optional.of(userInfo).
-                filter(element -> element.getAccount() != null)
+    public Result<String> register(@RequestBody UserInfo userInfo){
+        userInfo = Optional.of(userInfo)
+                .filter(element -> element.getAccount() != null)
                 .filter(element -> element.getPassword() != null)
                 .filter(element -> element.getRealName() != null)
                 .orElse(null);
@@ -60,7 +60,7 @@ public class IndexController {
         if(!target){
             return Result.error(CodeMsg.REGISTRATION_FAILED);
         }
-        return Result.setCodeMsg(CodeMsg.SUCCESS);
+        return Result.success(CodeMsg.SUCCESS);
     }
 
     @ExceptionHandler({
@@ -68,6 +68,6 @@ public class IndexController {
             NullPointerException.class
     })
     public Result handlerError(Exception ex){
-        return Result.error(CodeMsg.SERVER_ERROR);
+        return Result.error(CodeMsg.SERVER_ERROR.fillArgs(ex.getMessage()));
     }
 }
