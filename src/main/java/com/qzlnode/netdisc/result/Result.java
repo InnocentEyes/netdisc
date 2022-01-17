@@ -1,9 +1,12 @@
 package com.qzlnode.netdisc.result;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 /**
  * @author qzlzzz
  * @param <T>
  */
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Result<T> {
 
     private int code;
@@ -12,11 +15,15 @@ public class Result<T> {
 
     private T data;
 
-    public static <T> Result<T> success(T data){
+    public static <T> Result<T> success(T data,CodeMsg codeMsg){
         return new Result<T>(data);
     }
 
     public static <T> Result<T> error(CodeMsg codeMsg){
+        return new Result<T>(codeMsg);
+    }
+
+    public static  <T> Result<T> setCodeMsg(CodeMsg codeMsg){
         return new Result<T>(codeMsg);
     }
 

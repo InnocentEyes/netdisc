@@ -30,6 +30,13 @@ public class CodeMsg {
 
     public static CodeMsg PASSWORD_ERROR = new CodeMsg(500213, "密码错误");
 
+    /**
+     * 注册模块
+     */
+    public static CodeMsg REGISTRATION_FAILED = new CodeMsg(500310,"注册失败");
+
+    public static CodeMsg USER_MESSAGE_EMPTY = new CodeMsg(500311,"用户信息缺失");
+
     public CodeMsg() {
     }
 

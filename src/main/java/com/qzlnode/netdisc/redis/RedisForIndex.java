@@ -29,9 +29,10 @@ public class RedisForIndex {
     private static final String KEY_PREFIX = "user";
 
     public boolean set(String account,Integer id){
+        String key = KEY_PREFIX + account;
         try {
-            redis.opsForValue().set(KEY_PREFIX + account,id);
-            redis.expireAt(account,new Date(System.currentTimeMillis() + EFFECTIVE_TIME));
+            redis.opsForValue().set(key,id);
+            redis.expireAt(key,new Date(System.currentTimeMillis() + EFFECTIVE_TIME));
             logger.info("send" + account + " to redis success");
             return true;
         }catch (Exception exception){
@@ -43,19 +44,21 @@ public class RedisForIndex {
 
     /**
      *
-     * @param key
+     * @param account
      * @return
      */
-    public boolean get(Integer key){
-        return (boolean)redis.opsForValue().get(KEY_PREFIX + key);
+    public Integer get(String account){
+        String key = KEY_PREFIX + account;
+        return  (Integer)redis.opsForValue().get(key);
     }
 
     /**
      *
-     * @param key
+     * @param account
      * @return
      */
-    public boolean hasUser(Integer key){
+    public boolean hasUser(String account){
+        String key = KEY_PREFIX + account;
         return redis.hasKey(key);
     }
 }

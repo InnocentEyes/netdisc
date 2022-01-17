@@ -1,9 +1,10 @@
-package com.qzlnode.netdisc.util;
+package com.qzlnode.netdisc.fastdfs;
 
 import org.csource.common.MyException;
 import org.csource.fastdfs.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
 import java.io.IOException;
@@ -11,9 +12,10 @@ import java.io.IOException;
 /**
  * @author qzlzz
  */
-public class FastDFSUtil {
+@Component
+public class FastDFS {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(FastDFSUtil.class);
+    private final Logger LOGGER = LoggerFactory.getLogger(getClass());
 
     private static StorageClient storageClient = null;
 
@@ -39,7 +41,7 @@ public class FastDFSUtil {
      * @throws MyException
      * @throws IOException
      */
-    public static String[] upload(byte[] fileBytes,String fileExtName) throws MyException, IOException {
+    public String[] upload(byte[] fileBytes,String fileExtName) throws MyException, IOException {
         Assert.notNull(storageClient,"storageClient is null");
         LOGGER.info("----------uploading----------");
         return storageClient.upload_file(fileBytes,fileExtName,null);
@@ -53,7 +55,7 @@ public class FastDFSUtil {
      * @throws MyException
      * @throws IOException
      */
-    public static int delete(String groupName,String fileRemotePath) throws MyException, IOException {
+    public int delete(String groupName,String fileRemotePath) throws MyException, IOException {
         Assert.notNull(storageClient,"storageClient is null");
         LOGGER.info("----------deleting----------");
         return storageClient.delete_file(groupName,fileRemotePath);
@@ -67,7 +69,7 @@ public class FastDFSUtil {
      * @throws MyException
      * @throws IOException
      */
-    public static byte[] download(String group,String fileRemotePath) throws MyException, IOException {
+    public byte[] download(String group,String fileRemotePath) throws MyException, IOException {
         Assert.notNull(storageClient,"storageClient is null");
         LOGGER.info("----------downloading----------");
         return storageClient.download_file(group,fileRemotePath);

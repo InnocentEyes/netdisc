@@ -34,14 +34,14 @@ public class IndexServiceImpl extends ServiceImpl<UserDao, UserInfo> implements 
 
     @Override
     public boolean registerService(UserInfo userInfo) {
-        if(redis.hasUser(userInfo.getId())){
+        if(redis.hasUser(userInfo.getAccount())){
             return false;
         }
         int res = lambdaQuery()
                 .eq(UserInfo::getAccount,userInfo.getAccount())
                 .count();
         if(res != 0){
-            redis.set(userInfo.getAccount(),-1);
+            redis.set(userInfo.getAccount(),Integer.MIN_VALUE);
             return false;
         }
         userInfo.setPassword(BASE64.encode(userInfo.getPassword()));
@@ -49,20 +49,37 @@ public class IndexServiceImpl extends ServiceImpl<UserDao, UserInfo> implements 
         if(!target){
             throw new RegisterErrorException("注册失败");
         }
-        redis.set(userInfo.getAccount(),1);
+        redis.set(userInfo.getAccount(),Integer.MAX_VALUE);
         return true;
     }
 
     @Override
     public UserInfo loginService(UserInfo userInfo) {
-        if(redis.get(userInfo.getId())){
-           return userInfo;
+        Integer userId = redis.get(userInfo.getAccount());
+        if(userId == -1){
+            return null;
+        }
+        if(userId > 0){
+            userInfo.setId(userId);
+            return userInfo;
         }
         List<UserInfo> list = lambdaQuery()
-                .eq(UserInfo::getId,userInfo.getId())
+                .eq(UserInfo::getAccount,userInfo.getAccount())
                 .eq(element ->{
                     return BASE64.decode(element.getPassword());
                 },userInfo.getPassword()).list();
-        return null;
+        if(list == null || list.size() == 0) {
+            redis.set(userInfo.getAccount(),-1);
+            return null;
+        }
+        UserInfo res = list.stream()
+                .filter(element -> element.getId() != null)
+                .map(element -> {
+                    userInfo.setName(element.getName());
+                    userInfo.setId(element.getId());
+                    return userInfo;
+                }).findFirst().get();
+        redis.set(res.getAccount(),res.getId());
+        return res;
     }
 }
