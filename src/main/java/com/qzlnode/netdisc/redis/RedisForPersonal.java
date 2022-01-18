@@ -20,6 +20,8 @@ public class RedisForPersonal {
 
     private static final String KEY_PREFIX = "updateCount";
 
+    private static final String INIT_IMG_PREFIEX = "initImg";
+
     private static final long EFFECTIVE_TIME = 1000 * 60 * 60 * 24;
 
     private static final Integer MAX_UPDATE_COUNT = 3;
@@ -86,6 +88,39 @@ public class RedisForPersonal {
             return redis.hasKey(key);
         }catch (Exception ex){
             logger.error("check the updateCount error.\n" +
+                    "{}",ex.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     *
+     * @param userId
+     * @return
+     */
+    public boolean isInit(Integer userId){
+        String key = INIT_IMG_PREFIEX + userId;
+        try {
+            return redis.hasKey(key);
+        }catch (Exception ex){
+            logger.error("check the init error.\n" +
+                    "{}",ex.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     *
+     * @param userId
+     * @return
+     */
+    public boolean init(Integer userId){
+        String key = INIT_IMG_PREFIEX + userId;
+        try{
+            redis.opsForValue().set(key,1);
+            return true;
+        }catch (Exception ex){
+            logger.error(" init error.\n" +
                     "{}",ex.getMessage());
             return false;
         }

@@ -1,11 +1,12 @@
 package com.qzlnode.netdisc.controller;
 
+import com.qzlnode.netdisc.exception.UpdateCountException;
 import com.qzlnode.netdisc.fastdfs.FastDFS;
 import com.qzlnode.netdisc.pojo.UserInfo;
 import com.qzlnode.netdisc.result.CodeMsg;
 import com.qzlnode.netdisc.result.Result;
 import com.qzlnode.netdisc.service.PersonalService;
-import com.sun.tools.javac.jvm.Code;
+import com.qzlnode.netdisc.util.MessageHolder;
 import org.csource.common.MyException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,11 +36,20 @@ public class PersonalController {
     @Autowired
     private FastDFS fastDFS;
 
-    @PostMapping(value = "/update",produces = MediaType.APPLICATION_JSON_VALUE)
-    public Result<String> update(@RequestBody(required = false) UserInfo userInfo) throws IOException, MyException {
+    /**
+     *
+     * @param userInfo
+     * @return
+     * @throws IOException
+     * @throws MyException
+     */
+    @PostMapping(value = "/user/update",produces = MediaType.APPLICATION_JSON_VALUE)
+    public Result update(@RequestBody(required = false) UserInfo userInfo) throws IOException, MyException {
         userInfo = Optional.of(userInfo)
                 .filter(element -> element.getId() != null)
-                .filter(element -> element.getName() == null)
+                .filter(element -> {
+                    return element.getName() != null && element.getName().length() < 10;
+                })
                 .orElse(null);
         if(userInfo == null){
             return Result.error(CodeMsg.UPDATE_ERROR);
@@ -49,23 +59,54 @@ public class PersonalController {
                 Result.error(CodeMsg.UPDATE_ERROR);
     }
 
-    @PostMapping(value = "/change/{id}",produces = MediaType.APPLICATION_JSON_VALUE)
-    public Result<String> changeHeader(@RequestParam(value = "header") MultipartFile img,
-                                       @PathVariable("id") Integer id){
+    /**
+     *
+     * @param img
+     * @return
+     */
+    @PostMapping(value = "/header/change",produces = MediaType.APPLICATION_JSON_VALUE)
+    public Result<String> changeHeader(@RequestParam(value = "header") MultipartFile img) throws MyException, IOException {
+        boolean target;
+        target = service.deleteHeader(MessageHolder.getUserId());
+        if(!target){
+            return Result.error(CodeMsg.FILE_DELETE_ERROR);
+        }
+        String fileExtName = img.getOriginalFilename().split(".")[1];
+        String[] res = fastDFS.upload(img.getBytes(),fileExtName);
+        target = service.saveHeader(res,MessageHolder.getUserId());
+        if(!target){
+            return Result.error(CodeMsg.FILE_UPLOAD_ERROR);
+        }
         return Result.success(CodeMsg.SUCCESS);
     }
 
-    @PostMapping(value = "/init",produces = MediaType.APPLICATION_JSON_VALUE)
-    public Result<String> initHeader(@RequestParam(value = "header") MultipartFile img){
-        return Result.success(CodeMsg.SUCCESS);
+    /**
+     *
+     * @param img
+     * @return
+     * @throws IOException
+     * @throws MyException
+     */
+    @PostMapping(value = "/header/init",produces = MediaType.APPLICATION_JSON_VALUE)
+    public Result<String> initHeader(@RequestParam(value = "header") MultipartFile img) throws IOException, MyException {
+        String fileExtName = img.getOriginalFilename().split(".")[1];
+        String[] res = fastDFS.upload(img.getBytes(), fileExtName);
+        if(!service.initHeader(res,MessageHolder.getUserId())){
+            logger.error("file upload error.");
+            fastDFS.delete(res[0],res[1]);
+            return Result.error(CodeMsg.FILE_UPLOAD_ERROR);
+        }
+        return Result.success(res[0] + "/" + res[1],CodeMsg.SUCCESS);
     }
 
     @ExceptionHandler({
             IOException.class,
             MyException.class,
+            UpdateCountException.class,
             NullPointerException.class
     })
-    public Result<String> handlerError(Exception ex, HttpServletRequest request){
+    public Result handlerError(Exception ex, HttpServletRequest request){
+        MessageHolder.clearData();
         logger.error("handler {} error.\n" +
                 "the reason is {}",request.getRequestURL(),ex.getMessage());
         return Result.error(CodeMsg.SERVER_ERROR.fillArgs(ex.getMessage()));

@@ -14,6 +14,7 @@ import java.util.Date;
 @TableName(value = "user_info",resultMap = "user",autoResultMap = true)
 public class UserInfo {
 
+    @JsonProperty("userid")
     @TableId(type = IdType.AUTO)
     private Integer id;
 

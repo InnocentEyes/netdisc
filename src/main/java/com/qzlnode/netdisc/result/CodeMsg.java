@@ -1,7 +1,5 @@
 package com.qzlnode.netdisc.result;
 
-import com.sun.tools.javac.jvm.Code;
-
 /**
  * @author qzlzzz
  */
@@ -15,6 +13,9 @@ public class CodeMsg {
      * 通用的错误码
      */
     public static CodeMsg SUCCESS = new CodeMsg(0, "success");
+
+    public static CodeMsg MESSAGE_ERROR = new CodeMsg(-1,"验证失败");
+
 
     public static CodeMsg SERVER_ERROR = new CodeMsg(500100, "服务端异常");
 
@@ -43,6 +44,15 @@ public class CodeMsg {
      * 更新模块
      */
     public static CodeMsg UPDATE_ERROR = new CodeMsg(500410,"更新失败");
+
+    /**
+     * 文件传输端
+     */
+    public static CodeMsg FILE_UPLOAD_ERROR = new CodeMsg(500510,"文件上传失败");
+
+    public static CodeMsg FILE_DELETE_ERROR = new CodeMsg(500511,"文件下载失败");
+
+    public static CodeMsg FILE_DOWNLOAD_ERROR = new CodeMsg(500512,"文件下载失败");
 
     public CodeMsg() {
     }

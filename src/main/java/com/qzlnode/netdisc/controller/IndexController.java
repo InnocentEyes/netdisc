@@ -5,6 +5,7 @@ import com.qzlnode.netdisc.pojo.UserInfo;
 import com.qzlnode.netdisc.result.CodeMsg;
 import com.qzlnode.netdisc.result.Result;
 import com.qzlnode.netdisc.service.IndexService;
+import com.qzlnode.netdisc.util.MessageHolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletRequest;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Optional;
@@ -47,7 +49,7 @@ public class IndexController {
     }
 
     @PostMapping(value = "/register",produces = MediaType.APPLICATION_JSON_VALUE)
-    public Result<String> register(@RequestBody UserInfo userInfo){
+    public Result register(@RequestBody UserInfo userInfo){
         userInfo = Optional.of(userInfo)
                 .filter(element -> element.getAccount() != null)
                 .filter(element -> element.getPassword() != null)
@@ -67,7 +69,10 @@ public class IndexController {
             RegisterErrorException.class,
             NullPointerException.class
     })
-    public Result handlerError(Exception ex){
+    public Result handlerError(Exception ex, HttpServletRequest request){
+        MessageHolder.clearData();
+        logger.error("handler {} error.\n" +
+                "the reason is {}",request.getRequestURL(),ex.getMessage());
         return Result.error(CodeMsg.SERVER_ERROR.fillArgs(ex.getMessage()));
     }
 }
