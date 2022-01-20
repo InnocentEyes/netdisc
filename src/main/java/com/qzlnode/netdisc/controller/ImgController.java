@@ -50,7 +50,7 @@ public class ImgController {
         }
         String[] uploadRes = fastDFS.upload(img.getBytes(), img.getOriginalFilename().split(".")[1]);
         Img res = fileHandler.fileInfoToBean(img, uploadRes, Img.class);
-        return res == null ?
+        return service.imgUpload(res) == null ?
                 Result.error(CodeMsg.FILE_UPLOAD_ERROR) :
                 Result.success(res,CodeMsg.SUCCESS);
     }
