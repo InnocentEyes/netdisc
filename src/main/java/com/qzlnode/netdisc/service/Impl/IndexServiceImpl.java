@@ -3,8 +3,10 @@ package com.qzlnode.netdisc.service.Impl;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.qzlnode.netdisc.dao.UserDao;
 import com.qzlnode.netdisc.exception.RegisterErrorException;
+import com.qzlnode.netdisc.exception.hasPhoneException;
 import com.qzlnode.netdisc.pojo.UserInfo;
-import com.qzlnode.netdisc.redis.RedisForIndex;
+import com.qzlnode.netdisc.redis.RedisService;
+import com.qzlnode.netdisc.redis.UserKey;
 import com.qzlnode.netdisc.service.IndexService;
 import com.qzlnode.netdisc.util.BASE64;
 import org.slf4j.Logger;
@@ -14,7 +16,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.SQLSyntaxErrorException;
-import java.util.List;
 
 @Transactional(rollbackFor = {
         RuntimeException.class,
@@ -30,56 +31,36 @@ public class IndexServiceImpl extends ServiceImpl<UserDao, UserInfo> implements 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Autowired
-    private RedisForIndex redis;
+    private RedisService redisService;
+
+    @Autowired
+    private UserDao userDao;
 
     @Override
     public boolean registerService(UserInfo userInfo) {
-        if(redis.hasUser(userInfo.getAccount())){
-            return false;
-        }
-        int res = lambdaQuery()
-                .eq(UserInfo::getAccount,userInfo.getAccount())
-                .count();
-        if(res != 0){
-            redis.set(userInfo.getAccount(),Integer.MIN_VALUE);
-            return false;
+        if(redisService.exists(UserKey.phone,userInfo.getAccount())){
+            throw new hasPhoneException("电话号码已存在");
         }
         userInfo.setPassword(BASE64.encode(userInfo.getPassword()));
-        boolean target = save(userInfo);
-        if(!target){
+        int target = userDao.insert(userInfo);
+        if(target != 1){
             throw new RegisterErrorException("注册失败");
         }
-        redis.set(userInfo.getAccount(),Integer.MAX_VALUE);
-        return true;
+        if(redisService.set(UserKey.phone,userInfo.getAccount(),userInfo)){
+            return true;
+        }
+        return false;
     }
 
     @Override
     public UserInfo loginService(UserInfo userInfo) {
-        Integer userId = redis.get(userInfo.getAccount());
-        if(userId == -1){
+        UserInfo res = redisService.get(UserKey.phone,userInfo.getAccount(),UserInfo.class);
+        if(res == null){
             return null;
         }
-        if(userId > 0){
-            userInfo.setId(userId);
-            return userInfo;
+        if(BASE64.decode(res.getPassword()).equals(userInfo.getPassword())){
+            return res;
         }
-        List<UserInfo> list = lambdaQuery()
-                .eq(UserInfo::getAccount,userInfo.getAccount())
-                .eq(element ->{
-                    return BASE64.decode(element.getPassword());
-                },userInfo.getPassword()).list();
-        if(list == null || list.size() == 0) {
-            redis.set(userInfo.getAccount(),-1);
-            return null;
-        }
-        UserInfo res = list.stream()
-                .filter(element -> element.getId() != null)
-                .map(element -> {
-                    userInfo.setName(element.getName());
-                    userInfo.setId(element.getId());
-                    return userInfo;
-                }).findFirst().get();
-        redis.set(res.getAccount(),res.getId());
-        return res;
+        return null;
     }
 }

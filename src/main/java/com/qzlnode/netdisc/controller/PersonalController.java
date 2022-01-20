@@ -46,6 +46,8 @@ public class PersonalController {
     @PostMapping(value = "/user/update",produces = MediaType.APPLICATION_JSON_VALUE)
     public Result update(@RequestBody(required = false) UserInfo userInfo) throws IOException, MyException {
         userInfo = Optional.of(userInfo)
+                .filter(element -> element.getAccount() == null)
+                .filter(element -> element.getRealName() == null)
                 .filter(element -> element.getId() != null)
                 .filter(element -> {
                     return element.getName() != null && element.getName().length() < 10;

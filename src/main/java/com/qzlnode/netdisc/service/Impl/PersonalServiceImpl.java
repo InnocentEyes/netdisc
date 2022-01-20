@@ -1,16 +1,15 @@
 package com.qzlnode.netdisc.service.Impl;
 
-import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.qzlnode.netdisc.dao.UserDao;
 import com.qzlnode.netdisc.exception.UpdateCountException;
 import com.qzlnode.netdisc.fastdfs.FastDFS;
 import com.qzlnode.netdisc.pojo.UserInfo;
-import com.qzlnode.netdisc.redis.RedisForPersonal;
+import com.qzlnode.netdisc.redis.CountKey;
+import com.qzlnode.netdisc.redis.ImgKey;
+import com.qzlnode.netdisc.redis.RedisService;
 import com.qzlnode.netdisc.service.PersonalService;
-import com.qzlnode.netdisc.util.BASE64;
-import com.qzlnode.netdisc.util.MessageHolder;
 import org.csource.common.MyException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,8 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.sql.SQLSyntaxErrorException;
-import java.util.Arrays;
-import java.util.Optional;
 
 /**
  * @author qzlzzz
@@ -43,7 +40,13 @@ public class PersonalServiceImpl extends ServiceImpl<UserDao,UserInfo> implement
      *
      */
     @Autowired
-    private RedisForPersonal redis;
+    private RedisService redisService;
+
+    /**
+     *
+     */
+    @Autowired
+    private UserDao userDao;
 
     /**
      *
@@ -58,28 +61,22 @@ public class PersonalServiceImpl extends ServiceImpl<UserDao,UserInfo> implement
      */
     @Override
     public boolean updateUserMsg(UserInfo userInfo) {
-        boolean hasUser = redis.hasUpdateCount(userInfo.getId());
-        if(hasUser) {
-            if (!redis.checkUpdateCount(userInfo.getId())) {
-                throw new UpdateCountException("更新次数已达上限");
+        String userId = String.valueOf(userInfo.getId());
+        boolean hasUpdateCount = redisService.exists(CountKey.updateCount,userId);
+        if(hasUpdateCount){
+            int updateCount = redisService.get(CountKey.updateCount,userId,int.class);
+            if(updateCount >= 3){
+                throw new UpdateCountException("当日更新次数已达上限!");
             }
         }
-        boolean isUpdate;
-        if(userInfo.getPassword() == null) {
-            isUpdate = lambdaUpdate().eq(UserInfo::getId, userInfo.getId())
-                    .set(UserInfo::getName, userInfo.getName())
-                    .update();
-        }else {
-            isUpdate = lambdaUpdate().eq(UserInfo::getId, userInfo.getId())
-                    .set(UserInfo::getName, userInfo.getName())
-                    .set(UserInfo::getPassword, BASE64.encode(userInfo.getPassword()))
-                    .update();
+        boolean isUpdate = userDao.update(userInfo,Wrappers.lambdaUpdate(UserInfo.class)
+                .eq(UserInfo::getId,userInfo.getId())) == 1;
+        if(!hasUpdateCount && isUpdate){
+            return redisService.set(CountKey.updateCount,userId,0);
         }
-        if(!hasUser){
-            hasUser = redis.initUpdateCount(userInfo.getId());
-        }
-        if(isUpdate && hasUser){
-            return redis.updateCount(userInfo.getId());
+        if(hasUpdateCount && isUpdate){
+            redisService.incr(CountKey.updateCount,userId);
+            return true;
         }
         return false;
     }
@@ -91,7 +88,8 @@ public class PersonalServiceImpl extends ServiceImpl<UserDao,UserInfo> implement
      */
     @Override
     public boolean initHeader(String[] imgMsg,Integer userId) {
-        if(!redis.isInit(userId)){
+        String id = String.valueOf(userId);
+        if(redisService.exists(ImgKey.headerImg,id)){
             return false;
         }
         String avatarUrl = imgMsg[0] + "/" + imgMsg[1];
@@ -99,7 +97,7 @@ public class PersonalServiceImpl extends ServiceImpl<UserDao,UserInfo> implement
                 .set(UserInfo::getAvatarUrl,avatarUrl)
                 .update();
         if(isInit){
-            isInit = redis.init(userId);
+            isInit = redisService.set(ImgKey.headerImg,id,avatarUrl);
         }
         return isInit;
     }
@@ -111,10 +109,7 @@ public class PersonalServiceImpl extends ServiceImpl<UserDao,UserInfo> implement
      */
     @Override
     public boolean deleteHeader(Integer userId) throws MyException, IOException {
-        String avatarUrl = lambdaQuery().select(UserInfo::getAvatarUrl)
-                                        .eq(UserInfo::getId,userId)
-                                        .getEntity()
-                                        .getAvatarUrl();
+        String avatarUrl = redisService.get(ImgKey.headerImg,String.valueOf(userId),String.class);
         String[] res = avatarUrl.trim().split("/", 2);
         fastDFS.delete(res[0],res[1]);
         return lambdaUpdate().eq(UserInfo::getId,userId)
@@ -125,9 +120,13 @@ public class PersonalServiceImpl extends ServiceImpl<UserDao,UserInfo> implement
     @Override
     public boolean saveHeader(String[] imgMsg,Integer userId) {
         String avatarUrl = imgMsg[0] + "/" + imgMsg[1];
-        return lambdaUpdate().eq(UserInfo::getId,userId)
-                .set(UserInfo::getAvatarUrl,avatarUrl)
-                .update();
+        boolean isSave = userDao.update(null, Wrappers.lambdaUpdate(UserInfo.class)
+                .eq(UserInfo::getId,userId)
+                .set(UserInfo::getAvatarUrl,avatarUrl)) == 1;
+        if(isSave){
+            isSave = redisService.set(ImgKey.headerImg,String.valueOf(userId),avatarUrl);
+        }
+        return isSave;
     }
 
 
