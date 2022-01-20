@@ -73,6 +73,6 @@ public class IndexController {
         MessageHolder.clearData();
         logger.error("handler {} error.\n" +
                 "the reason is {}",request.getRequestURL(),ex.getMessage());
-        return Result.error(CodeMsg.SERVER_ERROR.fillArgs(ex.getMessage()));
+        return Result.error(CodeMsg.ERROR.fillArgs(ex.getMessage()));
     }
 }

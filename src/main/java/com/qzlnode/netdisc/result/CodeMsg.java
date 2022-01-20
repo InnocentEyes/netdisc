@@ -14,12 +14,13 @@ public class CodeMsg {
      */
     public static CodeMsg SUCCESS = new CodeMsg(0, "success");
 
-    public static CodeMsg MESSAGE_ERROR = new CodeMsg(-1,"验证失败");
-
+    public static CodeMsg ERROR = new CodeMsg(-1,"error");
 
     public static CodeMsg SERVER_ERROR = new CodeMsg(500100, "服务端异常");
 
     public static CodeMsg BIND_ERROR = new CodeMsg(500101, "参数校验异常：%s");
+
+    public static CodeMsg MESSAGE_ERROR = new CodeMsg(500102,"验证失败");
 
 
     /**
@@ -46,13 +47,18 @@ public class CodeMsg {
     public static CodeMsg UPDATE_ERROR = new CodeMsg(500410,"更新失败");
 
     /**
-     * 文件传输端
+     * 通用文件传输端
      */
     public static CodeMsg FILE_UPLOAD_ERROR = new CodeMsg(500510,"文件上传失败");
 
     public static CodeMsg FILE_DELETE_ERROR = new CodeMsg(500511,"文件下载失败");
 
     public static CodeMsg FILE_DOWNLOAD_ERROR = new CodeMsg(500512,"文件下载失败");
+
+    /**
+     * 图片端
+     */
+    public static CodeMsg IMG_TYPE_ERROR = new CodeMsg(500610,"图片类型错误");
 
     public CodeMsg() {
     }
