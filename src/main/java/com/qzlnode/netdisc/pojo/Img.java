@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonView;
 
 /**
@@ -18,6 +19,7 @@ public class Img{
     @TableId(type = IdType.AUTO)
     private Integer imgId;
 
+    @JsonIgnore
     private Integer userId;
 
     private long imgSize;

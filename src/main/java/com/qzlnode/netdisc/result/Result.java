@@ -1,8 +1,6 @@
 package com.qzlnode.netdisc.result;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.qzlnode.netdisc.dto.ResultSerializer;
 
 /**
  * @author qzlzzz
@@ -15,7 +13,6 @@ public class Result<T> {
 
     private String msg;
 
-    @JsonSerialize(using = ResultSerializer.class)
     private T data;
 
     public static <T> Result<T> success(T data,CodeMsg codeMsg){

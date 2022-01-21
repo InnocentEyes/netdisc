@@ -1,5 +1,7 @@
 package com.qzlnode.netdisc.controller;
 
+import com.qzlnode.netdisc.exception.InconsistentException;
+import com.qzlnode.netdisc.exception.UploadFileToLargeException;
 import com.qzlnode.netdisc.fastdfs.FastDFS;
 import com.qzlnode.netdisc.pojo.Img;
 import com.qzlnode.netdisc.result.CodeMsg;
@@ -11,6 +13,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -18,6 +22,8 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Pattern;
 
 /**
@@ -28,6 +34,14 @@ import java.util.regex.Pattern;
 public class ImgController {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
+
+    private static final String IMG_PNG = "png";
+
+    private static final String IMG_JPG = "jpg";
+
+    private static final String IMG_JPEG = "jpeg";
+
+    private static final int MAX_FILE_UPLOAD_COUNT = 5;
 
     @Autowired
     private FastDFS fastDFS;
@@ -43,7 +57,8 @@ public class ImgController {
      * @return
      */
     @PostMapping("/single/upload")
-    public Result<Img> imgUpload(@RequestParam("img")MultipartFile img) throws IOException, MyException, InvocationTargetException, IllegalAccessException, NoSuchMethodException {
+    public Result<Img> imgUpload(@RequestParam("img")MultipartFile img) throws IOException, MyException,
+            InvocationTargetException, IllegalAccessException, NoSuchMethodException {
         String suffix = "png|jpe?g|bmp";
         if(!Pattern.compile(suffix).matcher(img.getContentType()).find()){
             return Result.error(CodeMsg.IMG_TYPE_ERROR);
@@ -55,11 +70,67 @@ public class ImgController {
                 Result.success(res,CodeMsg.SUCCESS);
     }
 
+    /**
+     *
+     * @param imgId
+     * @return
+     * @throws MyException
+     * @throws IOException
+     */
     @RequestMapping("/single/download/{imgId}")
-    public ResponseEntity<byte[]> singleImgload(@PathVariable("imgId") Integer imgId){
+    public ResponseEntity<byte[]> singleImgload(@PathVariable("imgId") Integer imgId) throws MyException, IOException {
         Img img = service.imgDownload(imgId);
+        String imgType = img.getImgType();
         HttpHeaders headers = new HttpHeaders();
-        return null;
+        if(imgType.contains(IMG_PNG)){
+            headers.setContentType(MediaType.IMAGE_PNG);
+        }else if(imgType.contains(IMG_JPG) || imgType.contains(IMG_JPEG)){
+            headers.setContentType(MediaType.IMAGE_JPEG);
+        }
+        headers.setContentLength(img.getImgSize());
+        byte[] downloadRes = fastDFS.download(img.getGroupName(),img.getImgRemotePath());
+        if(downloadRes == null || downloadRes.length == 0){
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(downloadRes, headers,HttpStatus.OK);
+    }
+
+    /**
+     *
+     * @return
+     */
+    @GetMapping("/user")
+    public Result<List<Img>> getUserAllImg(){
+        List<Img> imgs = service.getUserImg();
+        return imgs == null ?
+                Result.error(CodeMsg.GET_IMG_ERROR) :
+                Result.success(imgs,CodeMsg.SUCCESS);
+    }
+
+    /**
+     *
+     * @param files
+     * @return
+     */
+    @PostMapping("/mult/upload")
+    public Result<List<Img>> mulletUpload(@RequestParam("imgs") MultipartFile[] files) throws IOException, MyException,
+            InvocationTargetException, IllegalAccessException, NoSuchMethodException {
+        if(files.length > MAX_FILE_UPLOAD_COUNT){
+            throw new UploadFileToLargeException("文件上传数量超过限制。");
+        }
+        List<String[]> filePaths = new ArrayList<>();
+        String suffix = "png|jpe?g|bmp";
+        for (MultipartFile file : files) {
+            if(!Pattern.compile(suffix).matcher(file.getContentType()).find()){
+                return Result.error(CodeMsg.IMG_TYPE_ERROR);
+            }
+            filePaths.add(fastDFS.upload(file.getBytes(),file.getOriginalFilename().split(".")[1]));
+        }
+        List<Img> imgs = fileHandler.fileInfoToBean(filePaths,Img.class,files);
+        imgs = service.saveMultImg(imgs);
+        return imgs == null ?
+                Result.error(CodeMsg.FILE_UPLOAD_ERROR) :
+                Result.success(imgs,CodeMsg.SUCCESS);
     }
 
     @ExceptionHandler({
@@ -67,7 +138,9 @@ public class ImgController {
             MyException.class,
             InvocationTargetException.class,
             IllegalArgumentException.class,
-            NoSuchMethodException.class
+            NoSuchMethodException.class,
+            InconsistentException.class,
+            UploadFileToLargeException.class
     })
     public Result handlerError(Exception exception, HttpServletRequest request){
         logger.error("handler {} error. \n" +

@@ -3,6 +3,7 @@ package com.qzlnode.netdisc.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.qzlnode.netdisc.pojo.Img;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -23,4 +24,16 @@ public interface ImgService extends IService<Img> {
      * @return
      */
     Img imgDownload(Integer imgId);
+
+    /**
+     *
+     * @return
+     */
+    List<Img> getUserImg();
+
+    /**
+     *
+     * @return
+     */
+    List<Img> saveMultImg(List<Img> imgs);
 }

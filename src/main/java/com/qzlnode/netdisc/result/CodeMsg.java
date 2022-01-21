@@ -60,6 +60,8 @@ public class CodeMsg {
      */
     public static CodeMsg IMG_TYPE_ERROR = new CodeMsg(500610,"图片类型错误");
 
+    public static CodeMsg GET_IMG_ERROR = new CodeMsg(500611,"获取图片失败");
+
     public CodeMsg() {
     }
 

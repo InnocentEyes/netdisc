@@ -13,7 +13,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author qzlzzz
@@ -40,14 +43,49 @@ public class ImgServiceImpl extends ServiceImpl<ImgDao, Img> implements ImgServi
     @Override
     public Img imgUpload(Img img) {
         int result = imgDao.insert(img);
-        if(result == 1 && redisService.set(ImgKey.img,String.valueOf(MessageHolder.getUserId()),img)) {
+        if(result == 1
+                && redisService.set(ImgKey.img,String.valueOf(img.getImgId()),img)
+                && redisService.setList(ImgKey.imgList,String.valueOf(MessageHolder.getUserId()),img)) {
             return img;
         }
         return null;
     }
 
+    /**
+     *
+     * @param imgId
+     * @return
+     */
     @Override
     public Img imgDownload(Integer imgId) {
-        return null;
+        return redisService.get(ImgKey.img,String.valueOf(imgId),Img.class);
+    }
+
+    /**
+     *
+     * @return
+     */
+    @Override
+    public List<Img> getUserImg(){
+       return Arrays.stream(redisService.get(ImgKey.imgList, String.valueOf(MessageHolder.getUserId()), Img[].class))
+                    .collect(Collectors.toList());
+    }
+
+    /**
+     *
+     * @param imgs
+     * @return
+     */
+    @Override
+    public List<Img> saveMultImg(List<Img> imgs) {
+        String userId = String.valueOf(MessageHolder.getUserId());
+        if(!saveBatch(imgs)){
+            return null;
+        }
+        imgs.stream().forEach(element ->{
+            redisService.set(ImgKey.img,String.valueOf(element.getImgId()),element);
+            redisService.setList(ImgKey.imgList,userId,element);
+        });
+        return imgs;
     }
 }

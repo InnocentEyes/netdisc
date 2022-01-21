@@ -4,12 +4,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
-
 /**
+ * 自己封装的对redis缓存库的操作,能运行就行。
  * @author qzlzzz
  */
 @Component
@@ -20,18 +20,18 @@ public class RedisService {
      */
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    @Resource(name = "redisTemplate")
-    private RedisTemplate redis;
+    @Autowired
+    private RedisTemplate<String,String> redis;
 
     private final ObjectMapper mapper = new ObjectMapper();
 
     /**
      * 将键值对存入到redis中
-     * @param keyPrefix
-     * @param key
-     * @param value
-     * @param <T>
-     * @return
+     * @param keyPrefix key的前缀
+     * @param key key
+     * @param value value
+     * @param <T> 值的类型
+     * @return {@code true} or {@code false}
      */
     public <T> boolean set(KeyPrefix keyPrefix,String key,T value){
         String realKey = keyPrefix.getPrefix() + key;
@@ -50,18 +50,53 @@ public class RedisService {
     }
 
     /**
+     * 将值设置到redis的list类型中去
+     * @param keyPrefix key的前缀
+     * @param key key
+     * @param value value
+     * @param <T> 值的类型
+     * @return {@code true} or {@code false}
+     */
+    public  <T> boolean setList(KeyPrefix keyPrefix,String key,T value){
+        String realKey = keyPrefix.getPrefix() + key;
+        String str = beanToJson(value);
+        if(str == null || str.length() < 1){
+            return false;
+        }
+        try {
+            redis.opsForList().leftPush(realKey,str);
+            return true;
+        }catch (Exception ex){
+            logger.error("set key to redis error.\n" +
+                    "the reason is {}",ex.getMessage());
+            return false;
+        }
+    }
+
+    /**
      * 根据key将值从redis中取出，并处理成需要的类型
-     * @param keyPrefix
-     * @param key
-     * @param claszz
-     * @param <T>
-     * @return
+     * @param keyPrefix key的前缀
+     * @param key key
+     * @param claszz 需要取出的类型
+     * @param <T> 传入需要取出的值的类型
+     * @return 返回想要的类型的值
      */
     public <T> T get(KeyPrefix keyPrefix,String key,Class<T> claszz){
         String realKey = keyPrefix.getPrefix() + key;
         try{
-            String str = (String) redis.opsForValue().get(realKey);
-            return jsonToBean(str,claszz);
+            if(!claszz.isArray()){
+                String str = redis.opsForValue().get(realKey);
+                return jsonToBean(str,claszz);
+            }
+            StringBuilder builder = new StringBuilder();
+            redis.opsForList()
+                    .range(realKey,0,-1)
+                    .stream()
+                    .forEach(element -> {
+                        builder.append(element);
+                        builder.append(",");
+                    });
+            return jsonToBean(builder.toString(),claszz);
         }catch (Exception ex){
             logger.error("get key value from redis error.\n" +
                     "the reason is {}",ex.getMessage());
@@ -71,10 +106,10 @@ public class RedisService {
     }
 
     /**
-     *
-     * @param keyPrefix
-     * @param key
-     * @return
+     * 值加1 这里list类型不能用
+     * @param keyPrefix key的前缀
+     * @param key key
+     * @return 返回long值
      */
     public long incr(KeyPrefix keyPrefix,String key){
         try {
@@ -87,10 +122,10 @@ public class RedisService {
     }
 
     /**
-     *
-     * @param keyPrefix
-     * @param key
-     * @return
+     * 值减一,这里list类型的键值对不能用
+     * @param keyPrefix key的前缀
+     * @param key key
+     * @return 返回long类型的值
      */
     public long decr(KeyPrefix keyPrefix,String key){
         try {
@@ -104,9 +139,9 @@ public class RedisService {
 
     /**
      * 将键值对从redis中删除
-     * @param keyPrefix
-     * @param key
-     * @return
+     * @param keyPrefix key的前缀
+     * @param key key
+     * @return {@code true} or {@code false}
      */
     public boolean delete(KeyPrefix keyPrefix,String key){
         try {
@@ -121,9 +156,9 @@ public class RedisService {
 
     /**
      * 判断redis是否有该key
-     * @param keyPrefix
+     * @param keyPrefix key前缀
      * @param key
-     * @return
+     * @return {@code true} or {@code false}
      */
     public boolean exists(KeyPrefix keyPrefix,String key){
         try{
@@ -178,7 +213,7 @@ public class RedisService {
         if(claszz == long.class || claszz == Long.class){
             return (T) Long.valueOf(str);
         }
-        if(claszz == String.class){
+        if(!claszz.isArray() && claszz == String.class){
             return (T) str;
         }
         try {
