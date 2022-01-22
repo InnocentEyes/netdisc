@@ -5,7 +5,6 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonView;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -16,28 +15,25 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@TableName("img")
-public class Img{
+@TableName("video_cover")
+public class VideoCover {
 
-    public interface ImgView{}
-
-    @JsonView(ImgView.class)
-    @TableId(type = IdType.AUTO)
-    private Integer imgId;
+    @TableId(value = "video_cover_id",type = IdType.AUTO)
+    private Integer videoCoverId;
 
     @JsonIgnore
+    @TableField("userId")
     private Integer userId;
 
-    private long imgSize;
+    @TableField("video_cover_size")
+    private long videoCoverSize;
 
-    private String imgType;
+    @TableField("video_cover_type")
+    private String videoCoverType;
 
-    @JsonView(ImgView.class)
+    @TableField("group_name")
     private String groupName;
 
-    @JsonView(ImgView.class)
-    @TableField("img_remote_path")
-    private String imgRemotePath;
-
-
+    @TableField("video_cover_remote_path")
+    private String videoCoverRemotePath;
 }

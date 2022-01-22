@@ -17,6 +17,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.SQLSyntaxErrorException;
 
+/**
+ * @author qzlzzz
+ */
 @Transactional(rollbackFor = {
         RuntimeException.class,
         NullPointerException.class,

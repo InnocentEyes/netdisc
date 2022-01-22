@@ -36,6 +36,8 @@ public class PersonalServiceImpl extends ServiceImpl<UserDao,UserInfo> implement
      */
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
+    private static final int MAX_UPDATE_COUNT = 3;
+
     /**
      *
      */
@@ -65,7 +67,7 @@ public class PersonalServiceImpl extends ServiceImpl<UserDao,UserInfo> implement
         boolean hasUpdateCount = redisService.exists(CountKey.updateCount,userId);
         if(hasUpdateCount){
             int updateCount = redisService.get(CountKey.updateCount,userId,int.class);
-            if(updateCount >= 3){
+            if(updateCount >= MAX_UPDATE_COUNT){
                 throw new UpdateCountException("当日更新次数已达上限!");
             }
         }

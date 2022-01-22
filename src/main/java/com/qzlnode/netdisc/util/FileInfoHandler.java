@@ -14,6 +14,7 @@ import java.util.List;
 /**
  * @author qzlzzz
  */
+@SuppressWarnings("unchecked")
 @Component
 public class FileInfoHandler {
 
@@ -34,9 +35,9 @@ public class FileInfoHandler {
      * @return
      * @throws InvocationTargetException
      * @throws IllegalAccessException
-     * @throws NoSuchMethodException
      */
-    public  <T> T fileInfoToBean(MultipartFile file,String[] filePath,Class<T> claszz) throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
+    public  <T> T fileInfoToBean(MultipartFile file, String[] filePath, Class<T> claszz)
+            throws InvocationTargetException, IllegalAccessException{
         if(file == null && file.isEmpty()){
             return null;
         }
@@ -45,19 +46,15 @@ public class FileInfoHandler {
             String name = beanSetter.getName();
             if(name.contains(FILE_TYPE)){
                 beanSetter.getWriteMethod().invoke(instance,file.getContentType());
-                continue;
             }
             if(name.contains(FILE_SIZE)){
                 beanSetter.getWriteMethod().invoke(instance,file.getSize());
-                continue;
             }
             if(name.contains(FILE_GROUP_NAME)){
                 beanSetter.getWriteMethod().invoke(instance,filePath[0]);
-                continue;
             }
             if(name.contains(FILE_REMOTE_PATH)){
                 beanSetter.getWriteMethod().invoke(instance,filePath[1]);
-                continue;
             }
         }
         return instance;
@@ -65,32 +62,26 @@ public class FileInfoHandler {
 
     /**
      *
-     * @param filePaths
+     * @param resPath
      * @param claszz
-     * @param files
      * @param <T>
      * @return
      * @throws InvocationTargetException
      * @throws IllegalAccessException
-     * @throws NoSuchMethodException
      */
-    public <T> List<T> fileInfoToBean(List<String[]> filePaths, Class<T> claszz, MultipartFile[] files) throws InvocationTargetException, IllegalAccessException, NoSuchMethodException {
-        if(filePaths == null || filePaths.size() == 0){
-            return null;
+    public <T> T pathToBean(String[] resPath,Class<T> claszz)
+            throws InvocationTargetException, IllegalAccessException {
+        T instance =  (T)ReflectUtils.newInstance(claszz);
+        for (PropertyDescriptor beanSetter : ReflectUtils.getBeanSetters(claszz)) {
+            String name = beanSetter.getName();
+            if(name.contains(FILE_GROUP_NAME)){
+                beanSetter.getWriteMethod().invoke(instance,resPath[0]);
+            }
+            if(name.contains(FILE_REMOTE_PATH)){
+                beanSetter.getWriteMethod().invoke(instance,resPath[0]);
+            }
         }
-        if(files == null || files.length == 0){
-            return null;
-        }
-        if(filePaths.size() != files.length){
-            throw new InconsistentException("文件路径列表长度与文件个数不一致!");
-        }
-        List<T> list = new ArrayList<>();
-        Iterator<String[]> filePathsIterator = filePaths.iterator();
-        for (MultipartFile file : files) {
-            String[] filePath = filePathsIterator.next();
-            list.add(fileInfoToBean(file,filePath,claszz));
-        }
-        return list;
+        return instance;
     }
 
     static {

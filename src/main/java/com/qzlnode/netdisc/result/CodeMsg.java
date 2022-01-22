@@ -18,7 +18,7 @@ public class CodeMsg {
 
     public static CodeMsg SERVER_ERROR = new CodeMsg(500100, "服务端异常");
 
-    public static CodeMsg BIND_ERROR = new CodeMsg(500101, "参数校验异常：%s");
+    public static CodeMsg BIND_ERROR = new CodeMsg(500101, "无参数接受至服务端,请检查前端代码");
 
     public static CodeMsg MESSAGE_ERROR = new CodeMsg(500102,"验证失败");
 
@@ -49,11 +49,16 @@ public class CodeMsg {
     /**
      * 通用文件传输端
      */
+
     public static CodeMsg FILE_UPLOAD_ERROR = new CodeMsg(500510,"文件上传失败");
 
     public static CodeMsg FILE_DELETE_ERROR = new CodeMsg(500511,"文件下载失败");
 
     public static CodeMsg FILE_DOWNLOAD_ERROR = new CodeMsg(500512,"文件下载失败");
+
+    public static CodeMsg FILE_NO_EXIST = new CodeMsg(500513,"文件不存在");
+
+    public static CodeMsg FILE_CANNOT_ACCPET = new CodeMsg(500514,"无文件接受至服务端,请查看前端代码是否正确");
 
     /**
      * 图片端
@@ -86,9 +91,17 @@ public class CodeMsg {
         this.msg = msg;
     }
 
-    public CodeMsg fillArgs(Object... args){
+    public CodeMsg fillArgs(String... args){
+        if(args.length == 0){
+            return this;
+        }
         int code = this.code;
-        String message = String.format(this.msg,args);
+        StringBuilder builder  = new StringBuilder(this.msg);
+        for (String arg : args) {
+            builder.append(",");
+            builder.append(arg);
+        }
+        String message = builder.toString();
         return new CodeMsg(code,message);
     }
 

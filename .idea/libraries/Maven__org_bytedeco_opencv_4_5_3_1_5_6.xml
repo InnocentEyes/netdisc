@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="Maven: org.bytedeco:opencv:4.5.3-1.5.6">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/org/bytedeco/opencv/4.5.3-1.5.6/opencv-4.5.3-1.5.6.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$MAVEN_REPOSITORY$/org/bytedeco/opencv/4.5.3-1.5.6/opencv-4.5.3-1.5.6-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$MAVEN_REPOSITORY$/org/bytedeco/opencv/4.5.3-1.5.6/opencv-4.5.3-1.5.6-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

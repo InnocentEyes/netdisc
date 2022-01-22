@@ -114,19 +114,20 @@ public class ImgController {
      */
     @PostMapping("/mult/upload")
     public Result<List<Img>> mulletUpload(@RequestParam("imgs") MultipartFile[] files) throws IOException, MyException,
-            InvocationTargetException, IllegalAccessException, NoSuchMethodException {
-        if(files.length > MAX_FILE_UPLOAD_COUNT){
+            InvocationTargetException, IllegalAccessException{
+        if(files.length > MAX_FILE_UPLOAD_COUNT) {
             throw new UploadFileToLargeException("文件上传数量超过限制。");
         }
-        List<String[]> filePaths = new ArrayList<>();
         String suffix = "png|jpe?g|bmp";
+        List<Img> imgs = new ArrayList<>();
         for (MultipartFile file : files) {
             if(!Pattern.compile(suffix).matcher(file.getContentType()).find()){
                 return Result.error(CodeMsg.IMG_TYPE_ERROR);
             }
-            filePaths.add(fastDFS.upload(file.getBytes(),file.getOriginalFilename().split(".")[1]));
+            String fileExtName = file.getOriginalFilename().split(".")[1];
+            String[] filePath = fastDFS.upload(file.getBytes(), fileExtName);
+            imgs.add(fileHandler.fileInfoToBean(file,filePath,Img.class));
         }
-        List<Img> imgs = fileHandler.fileInfoToBean(filePaths,Img.class,files);
         imgs = service.saveMultImg(imgs);
         return imgs == null ?
                 Result.error(CodeMsg.FILE_UPLOAD_ERROR) :
