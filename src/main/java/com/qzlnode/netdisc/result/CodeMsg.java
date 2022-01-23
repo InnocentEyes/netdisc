@@ -12,15 +12,15 @@ public class CodeMsg {
     /**
      * 通用的错误码
      */
-    public static CodeMsg SUCCESS = new CodeMsg(0, "success");
+    public static CodeMsg SUCCESS = new CodeMsg(0, "success :) ");
 
-    public static CodeMsg ERROR = new CodeMsg(-1,"error");
+    public static CodeMsg ERROR = new CodeMsg(-1,"error :( ");
 
     public static CodeMsg SERVER_ERROR = new CodeMsg(500100, "服务端异常");
 
     public static CodeMsg BIND_ERROR = new CodeMsg(500101, "无参数接受至服务端,请检查前端代码");
 
-    public static CodeMsg MESSAGE_ERROR = new CodeMsg(500102,"验证失败");
+    public static CodeMsg MESSAGE_ERROR = new CodeMsg(500102,"验证失败,请检查请求头是否带有token");
 
 
     /**
@@ -66,6 +66,11 @@ public class CodeMsg {
     public static CodeMsg IMG_TYPE_ERROR = new CodeMsg(500610,"图片类型错误");
 
     public static CodeMsg GET_IMG_ERROR = new CodeMsg(500611,"获取图片失败");
+
+    /**
+     * 视频端
+     */
+    public static CodeMsg UNFOUND_VIDEO = new CodeMsg(500710,"视频资源获取失败");
 
     public CodeMsg() {
     }

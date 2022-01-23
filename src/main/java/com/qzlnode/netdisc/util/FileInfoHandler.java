@@ -26,6 +26,8 @@ public class FileInfoHandler {
 
     private static final String FILE_REMOTE_PATH = "RemotePath";
 
+    private static final String FILE_ORIGIN_NAME = "OriginName";
+
     /**
      *
      * @param file
@@ -55,6 +57,9 @@ public class FileInfoHandler {
             }
             if(name.contains(FILE_REMOTE_PATH)){
                 beanSetter.getWriteMethod().invoke(instance,filePath[1]);
+            }
+            if(name.contains(FILE_ORIGIN_NAME)){
+                beanSetter.getWriteMethod().invoke(instance,file.getOriginalFilename());
             }
         }
         return instance;

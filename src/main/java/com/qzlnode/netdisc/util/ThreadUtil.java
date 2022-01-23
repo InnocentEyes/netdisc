@@ -104,6 +104,7 @@ public class ThreadUtil {
         public Thread newThread(Runnable r) {
             this.threadName = this.tmp + threadNo.get();
             threadNo.incrementAndGet();
+            LOGGER.info("创建了一个线程:{}",this.threadName);
             Thread thread = new Thread(r,threadName);
             return thread;
         }

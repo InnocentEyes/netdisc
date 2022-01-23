@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -16,14 +17,21 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @TableName("video_cover")
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class VideoCover {
 
     @TableId(value = "video_cover_id",type = IdType.AUTO)
     private Integer videoCoverId;
 
+    @TableField(exist = false)
+    private Video video;
+
     @JsonIgnore
-    @TableField("userId")
+    @TableId(value = "user_id",type = IdType.NONE)
     private Integer userId;
+
+    @TableField("video_origin_name")
+    private String videoOriginName;
 
     @TableField("video_cover_size")
     private long videoCoverSize;

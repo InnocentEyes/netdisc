@@ -28,6 +28,9 @@ public class Img{
     @JsonIgnore
     private Integer userId;
 
+    @TableField("img_origin_name")
+    private String imgOriginName;
+
     private long imgSize;
 
     private String imgType;

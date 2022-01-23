@@ -6,8 +6,10 @@ import com.qzlnode.netdisc.fastdfs.FastDFS;
 import com.qzlnode.netdisc.pojo.Img;
 import com.qzlnode.netdisc.result.CodeMsg;
 import com.qzlnode.netdisc.result.Result;
+import com.qzlnode.netdisc.service.AsyncService;
 import com.qzlnode.netdisc.service.ImgService;
 import com.qzlnode.netdisc.util.FileInfoHandler;
+import com.qzlnode.netdisc.util.MessageHolder;
 import org.csource.common.MyException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,6 +54,9 @@ public class ImgController {
     @Autowired
     private FileInfoHandler fileHandler;
 
+    @Autowired
+    private AsyncService asyncService;
+
     /**
      *
      * @return
@@ -65,9 +70,17 @@ public class ImgController {
         }
         String[] uploadRes = fastDFS.upload(img.getBytes(), img.getOriginalFilename().split(".")[1]);
         Img res = fileHandler.fileInfoToBean(img, uploadRes, Img.class);
-        return service.imgUpload(res) == null ?
-                Result.error(CodeMsg.FILE_UPLOAD_ERROR) :
-                Result.success(res,CodeMsg.SUCCESS);
+        res = service.imgUpload(res);
+        if(res != null){
+            String userId = String.valueOf(MessageHolder.getUserId());
+            String key = String.valueOf(res.getImgId());
+            /**
+             * 调用异步任务
+             */
+            asyncService.setDataToRedis(userId,key,res);
+            return Result.success(res,CodeMsg.SUCCESS);
+        }
+        return Result.error(CodeMsg.FILE_UPLOAD_ERROR);
     }
 
     /**
@@ -86,8 +99,11 @@ public class ImgController {
             headers.setContentType(MediaType.IMAGE_PNG);
         }else if(imgType.contains(IMG_JPG) || imgType.contains(IMG_JPEG)){
             headers.setContentType(MediaType.IMAGE_JPEG);
+        }else {
+            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
         }
         headers.setContentLength(img.getImgSize());
+        headers.setContentDispositionFormData("attachment",img.getImgOriginName());
         byte[] downloadRes = fastDFS.download(img.getGroupName(),img.getImgRemotePath());
         if(downloadRes == null || downloadRes.length == 0){
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -112,7 +128,7 @@ public class ImgController {
      * @param files
      * @return
      */
-    @PostMapping("/mult/upload")
+    @PostMapping("/multi/upload")
     public Result<List<Img>> mulletUpload(@RequestParam("imgs") MultipartFile[] files) throws IOException, MyException,
             InvocationTargetException, IllegalAccessException{
         if(files.length > MAX_FILE_UPLOAD_COUNT) {
@@ -144,6 +160,7 @@ public class ImgController {
             UploadFileToLargeException.class
     })
     public Result handlerError(Exception exception, HttpServletRequest request){
+        MessageHolder.clearData();
         logger.error("handler {} error. \n" +
                 "the reason is {}",request.getRequestURL(),exception.getMessage());
         return Result.error(CodeMsg.ERROR.fillArgs(exception.getMessage()));

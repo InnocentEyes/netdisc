@@ -6,6 +6,7 @@ import com.qzlnode.netdisc.result.CodeMsg;
 import com.qzlnode.netdisc.result.Result;
 import com.qzlnode.netdisc.service.IndexService;
 import com.qzlnode.netdisc.util.MessageHolder;
+import com.qzlnode.netdisc.util.Security;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,10 +17,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Optional;
 
+/**
+ * @author qzlzzz
+ */
 @RestController
 public class IndexController {
     /**
@@ -31,7 +36,7 @@ public class IndexController {
     private IndexService indexService;
 
     @PostMapping(value = "/login",produces = MediaType.APPLICATION_JSON_VALUE)
-    public Result<UserInfo> login(@RequestBody UserInfo userInfo){
+    public Result<UserInfo> login(@RequestBody UserInfo userInfo, HttpServletResponse response){
         if(userInfo.getAccount() == null){
             return Result.error(CodeMsg.MOBILE_EMPTY);
         }
@@ -44,6 +49,8 @@ public class IndexController {
             logger.info("user login error at {}",ft.format(new Date()));
             return Result.error(CodeMsg.PASSWORD_ERROR);
         }
+        response.setHeader("Access-Control-Expose-Headers","token");
+        response.setHeader("token", Security.getToken(userMessage));
         logger.info("user {} named {} login success.",userMessage.getId(),userMessage.getName());
         return Result.success(userMessage,CodeMsg.SUCCESS);
     }

@@ -6,6 +6,7 @@ import com.qzlnode.netdisc.dao.ImgDao;
 import com.qzlnode.netdisc.pojo.Img;
 import com.qzlnode.netdisc.redis.ImgKey;
 import com.qzlnode.netdisc.redis.RedisService;
+import com.qzlnode.netdisc.service.AsyncService;
 import com.qzlnode.netdisc.service.ImgService;
 import com.qzlnode.netdisc.util.MessageHolder;
 import org.slf4j.Logger;
@@ -35,6 +36,7 @@ public class ImgServiceImpl extends ServiceImpl<ImgDao, Img> implements ImgServi
     @Autowired
     private RedisService redisService;
 
+
     /**
      *
      * @param img
@@ -43,9 +45,7 @@ public class ImgServiceImpl extends ServiceImpl<ImgDao, Img> implements ImgServi
     @Override
     public Img imgUpload(Img img) {
         int result = imgDao.insert(img);
-        if(result == 1
-                && redisService.set(ImgKey.img,String.valueOf(img.getImgId()),img)
-                && redisService.setList(ImgKey.imgList,String.valueOf(MessageHolder.getUserId()),img)) {
+        if(result == 1){
             return img;
         }
         return null;
