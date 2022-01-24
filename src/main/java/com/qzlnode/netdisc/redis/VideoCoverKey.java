@@ -14,7 +14,6 @@ public class VideoCoverKey extends BasePrefix{
         super(expireSeconds, prefix);
     }
 
-    public static VideoCoverKey videoCover = new VideoCoverKey(0,"videoCover");
 
     public static VideoCoverKey videoCoverList = new VideoCoverKey(0,"videoCoverList");
 

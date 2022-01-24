@@ -4,6 +4,7 @@ import com.qzlnode.netdisc.exception.InconsistentException;
 import com.qzlnode.netdisc.exception.UploadFileToLargeException;
 import com.qzlnode.netdisc.fastdfs.FastDFS;
 import com.qzlnode.netdisc.pojo.Img;
+import com.qzlnode.netdisc.redis.ImgKey;
 import com.qzlnode.netdisc.result.CodeMsg;
 import com.qzlnode.netdisc.result.Result;
 import com.qzlnode.netdisc.service.AsyncService;
@@ -77,7 +78,7 @@ public class ImgController {
             /**
              * 调用异步任务
              */
-            asyncService.setDataToRedis(userId,key,res);
+            asyncService.setDataToRedis(key,userId,res,ImgKey.img,ImgKey.imgList);
             return Result.success(res,CodeMsg.SUCCESS);
         }
         return Result.error(CodeMsg.FILE_UPLOAD_ERROR);

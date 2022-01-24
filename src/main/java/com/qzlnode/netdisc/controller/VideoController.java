@@ -5,6 +5,8 @@ import com.qzlnode.netdisc.exception.UploadFileToLargeException;
 import com.qzlnode.netdisc.fastdfs.FastDFS;
 import com.qzlnode.netdisc.pojo.Video;
 import com.qzlnode.netdisc.pojo.VideoCover;
+import com.qzlnode.netdisc.redis.VideoCoverKey;
+import com.qzlnode.netdisc.redis.VideoKey;
 import com.qzlnode.netdisc.result.CodeMsg;
 import com.qzlnode.netdisc.result.Result;
 import com.qzlnode.netdisc.service.AsyncService;
@@ -84,7 +86,9 @@ public class VideoController {
          * 这里调用异步任务,由于是异步任务所以无需在控制器方法内先处理文件，
          * 直接将文件传入异步方法中处理。
          */
-        asyncService.saveVideo(file,cover);
+        String key = String.valueOf(cover.getVideoCoverId());
+        String userId = String.valueOf(MessageHolder.getUserId());
+        asyncService.saveVideo(key,userId,file,cover, VideoKey.video, VideoCoverKey.videoCoverList);
         return Result.success(cover,CodeMsg.SUCCESS);
     }
 
@@ -157,7 +161,8 @@ public class VideoController {
         /**
          * 启动异步
          */
-        asyncService.saveBatchVideo(files,covers);
+        String userId = String.valueOf(MessageHolder.getUserId());
+        asyncService.saveBatchVideo(files,covers,userId,VideoKey.video,VideoCoverKey.videoCoverList);
         return covers == null ? Result.error(CodeMsg.FILE_UPLOAD_ERROR) : Result.success(covers,CodeMsg.SUCCESS);
     }
 
@@ -181,7 +186,9 @@ public class VideoController {
         /**
          * 开启异步任务
          */
-        asyncService.saveVideo(video,single);
+        String key = String.valueOf(single.getVideoCoverId());
+        String userId = String.valueOf(MessageHolder.getUserId());
+        asyncService.saveVideo(key,userId,video,single,VideoKey.video,VideoCoverKey.videoCoverList);
         return Result.success(single,CodeMsg.SUCCESS);
     }
 

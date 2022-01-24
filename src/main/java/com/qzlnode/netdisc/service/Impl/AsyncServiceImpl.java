@@ -5,10 +5,7 @@ import com.qzlnode.netdisc.fastdfs.FastDFS;
 import com.qzlnode.netdisc.pojo.Img;
 import com.qzlnode.netdisc.pojo.Video;
 import com.qzlnode.netdisc.pojo.VideoCover;
-import com.qzlnode.netdisc.redis.ImgKey;
-import com.qzlnode.netdisc.redis.RedisService;
-import com.qzlnode.netdisc.redis.VideoCoverKey;
-import com.qzlnode.netdisc.redis.VideoKey;
+import com.qzlnode.netdisc.redis.*;
 import com.qzlnode.netdisc.service.AsyncService;
 import com.qzlnode.netdisc.util.FileInfoHandler;
 import org.csource.common.MyException;
@@ -21,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
@@ -50,39 +48,36 @@ public class AsyncServiceImpl implements AsyncService {
 
 
     @Override
-    public <T> void setDataToRedis(String userId,String key,T value) {
-        if(value == null){
+    public <T> void saveVideo(String key, String userId, MultipartFile file, T value, KeyPrefix... keyPrefix){
+        if(file == null || file.getOriginalFilename() == null || keyPrefix.length == 0) {
             return;
         }
-        if(value instanceof Video){
-            redisService.set(VideoKey.video,key,value);
+        if(keyPrefix.length > 2){
             return;
         }
-        if(value instanceof VideoCover){
-            redisService.set(VideoCoverKey.videoCover,key,value);
-            redisService.setList(VideoCoverKey.videoCoverList,userId,value);
-            return;
-        }
-        if(value instanceof Img){
-            redisService.set(ImgKey.img,key,value);
-            redisService.setList(ImgKey.imgList,userId,value);
-        }
-
-    }
-
-    @Override
-    public void saveVideo(MultipartFile file, VideoCover cover) {
-        try {
-            String[] uploadRes = dfs.upload(file.getBytes(), file.getOriginalFilename().split(".")[1]);
+        try{
+            String[] uploadRes = dfs.upload(file.getBytes(),file.getOriginalFilename().split(".")[1]);
+            if(value instanceof Video && keyPrefix.length == 1 && keyPrefix[0] instanceof VideoKey){
+                if(value.getClass().getMethod("getVideoCoverId").invoke(value) == null){
+                    return;
+                }
+                Video video = (Video)fileInfoHandler.pathBean(uploadRes, value);
+                videoDao.insert(video);
+                setDataToRedis(keyPrefix[0],key,null,video);
+                return;
+            }
             Video video = fileInfoHandler.fileInfoToBean(file, uploadRes, Video.class);
-            video.setVideoCoverId(cover.getVideoCoverId());
-            videoDao.insert(video);
-            cover.setVideo(video);
-            String userId = String.valueOf(cover.getUserId());
-            String key = String.valueOf(cover.getVideoCoverId());
-            setDataToRedis(userId, key, cover);
-            setDataToRedis(userId, key, video);
-            logger.info("run the async method success.");
+            Integer coverId = (Integer) value.getClass().getMethod("getVideoCoverId").invoke(value);
+            video.setVideoCoverId(coverId);
+            value.getClass().getMethod("setVideo").invoke(value,video);
+            Arrays.stream(keyPrefix).forEach(element -> {
+                if(element instanceof VideoKey){
+                    setDataToRedis(element,key,userId,video);
+                }
+                if(element instanceof VideoCoverKey){
+                    setDataToRedis(element,key,userId,value);
+                }
+            });
         }catch (IOException | MyException | InvocationTargetException | IllegalAccessException e){
             logger.error("run the async method error.\n {}",e.getMessage());
         }catch (Exception e){
@@ -91,35 +86,62 @@ public class AsyncServiceImpl implements AsyncService {
     }
 
     @Override
-    public void saveBatchVideo(MultipartFile[] files, List<VideoCover> covers) {
-        if(covers == null && covers.size() == 0){
+    public <T> void saveBatchVideo(MultipartFile[] files, List<T> values, String userId, KeyPrefix... keyPrefixes){
+        if(files == null || files.length == 0){
             return;
         }
-        if(files == null && files.length == 0){
+        if(values == null || values.size() == 0){
             return;
         }
-        if(files.length != covers.size()){
+        if(files.length != values.size()){
             return;
         }
-        try{
-            String userId = String.valueOf(covers.get(0).getUserId());
-            String key = String.valueOf(covers.get(0).getVideoCoverId());
-            Iterator<VideoCover> coverIterator = covers.iterator();
-            for (MultipartFile file : files) {
-                String[] uploadRes = dfs.upload(file.getBytes(),file.getOriginalFilename().split(".")[1]);
-                Video video = fileInfoHandler.fileInfoToBean(file, uploadRes, Video.class);
-                VideoCover cover = coverIterator.next();
-                video.setVideoCoverId(cover.getVideoCoverId());
-                cover.setVideo(video);
-                videoDao.insert(video);
-                setDataToRedis(userId,key,video);
-                setDataToRedis(userId,key,cover);
+        Iterator<T> iterator = values.iterator();
+        for (MultipartFile file : files) {
+            T value = iterator.next();
+            String key = null;
+            try {
+                key = (String) value.getClass().getMethod("getVideoCoverId").invoke(value);
+            } catch (IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
+                logger.error("In save video batch error. {}",e.getMessage());
+                break;
             }
-            logger.info("async method handler success.");
-        }catch (IOException | MyException | InvocationTargetException | IllegalAccessException e){
-            logger.error("run the async method error.\n {}",e.getMessage());
-        }catch (Exception e){
-            logger.error("run the async get a unexpected exception {} , the reason is {}",e,e.getMessage());
+            saveVideo(key,userId,file,value,keyPrefixes);
         }
+    }
+
+    /**
+     *
+     * @param keyPrefix
+     * @param key
+     * @param userId
+     * @param value
+     * @param <T>
+     */
+    @Override
+    public <T> void setDataToRedis(KeyPrefix keyPrefix,String key,String userId,T value){
+        if(value instanceof Video){
+            redisService.set(keyPrefix,key,value);
+            return;
+        }
+        if(value instanceof VideoCover){
+            redisService.setList(keyPrefix,userId,value);
+        }
+        redisService.set(keyPrefix,key,value);
+        redisService.setList(keyPrefix,userId,value);
+    }
+
+    /**
+     * 第一个前缀必须是key-value类型 第二个前缀必须是key-list类型
+     * @param key
+     * @param userId
+     * @param value
+     * @param keyPrefixes
+     * @param <T>
+     */
+    @Override
+    public <T> void setDataToRedis(String key, String userId, T value, KeyPrefix... keyPrefixes) {
+        redisService.set(keyPrefixes[0],key,value);
+        redisService.setList(keyPrefixes[1],userId,value);
     }
 }

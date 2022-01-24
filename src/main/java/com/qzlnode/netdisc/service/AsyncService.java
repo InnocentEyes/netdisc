@@ -1,6 +1,8 @@
 package com.qzlnode.netdisc.service;
 
 import com.qzlnode.netdisc.pojo.VideoCover;
+import com.qzlnode.netdisc.redis.KeyPrefix;
+import lombok.Data;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -12,22 +14,43 @@ public interface AsyncService {
 
     /**
      *
-     * @param values
+     * @param keyPrefix
+     * @param key
+     * @param userId
+     * @param value
      * @param <T>
      */
-    <T> void setDataToRedis(String userId,String key,T values);
+    <T> void setDataToRedis(KeyPrefix keyPrefix,String key,String userId,T value);
 
     /**
      *
-     * @param file
+     * @param key
+     * @param userId
+     * @param value
+     * @param keyPrefixes
+     * @param <T>
      */
-    void saveVideo(MultipartFile file, VideoCover cover);
+    <T> void setDataToRedis(String key,String userId,T value,KeyPrefix... keyPrefixes);
+
+    /**
+     *
+     * @param key
+     * @param userId
+     * @param file
+     * @param value
+     * @param keyPrefix
+     * @param <T>
+     */
+    <T> void saveVideo(String key, String userId, MultipartFile file, T value, KeyPrefix... keyPrefix);
 
     /**
      *
      * @param files
-     * @param covers
+     * @param values
+     * @param userId
+     * @param keyPrefixes
+     * @param <T>
      */
-    void saveBatchVideo(MultipartFile[] files, List<VideoCover> covers);
+    <T> void saveBatchVideo(MultipartFile[] files, List<T> values, String userId, KeyPrefix... keyPrefixes);
 
 }

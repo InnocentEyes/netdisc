@@ -89,6 +89,28 @@ public class FileInfoHandler {
         return instance;
     }
 
+    /**
+     *
+     * @param resPath
+     * @param value
+     * @param <T>
+     * @return
+     * @throws InvocationTargetException
+     * @throws IllegalAccessException
+     */
+    public <T> T pathBean(String[] resPath,T value) throws InvocationTargetException, IllegalAccessException {
+        for (PropertyDescriptor beanSetter : ReflectUtils.getBeanSetters(value.getClass())) {
+            String name = beanSetter.getName();
+            if(name.contains(FILE_GROUP_NAME)){
+                beanSetter.getWriteMethod().invoke(value,resPath[0]);
+            }
+            if(name.contains(FILE_REMOTE_PATH)){
+                beanSetter.getWriteMethod().invoke(value,resPath[0]);
+            }
+        }
+        return value;
+    }
+
     static {
         System.out.println("FileInfoHandler已创建");
     }
