@@ -63,7 +63,7 @@ public class AsyncServiceImpl implements AsyncService {
                 }
                 Video video = (Video)fileInfoHandler.pathBean(uploadRes, value);
                 videoDao.insert(video);
-                setDataToRedis(keyPrefix[0],key,null,video);
+                redisService.set(keyPrefix[0],key,video);
                 return;
             }
             Video video = fileInfoHandler.fileInfoToBean(file, uploadRes, Video.class);
@@ -73,10 +73,10 @@ public class AsyncServiceImpl implements AsyncService {
             value.getClass().getMethod("setVideo").invoke(value,video);
             Arrays.stream(keyPrefix).forEach(element -> {
                 if(element instanceof VideoKey){
-                    setDataToRedis(element,key,userId,video);
+                    redisService.set(element,key,video);
                 }
                 if(element instanceof VideoCoverKey){
-                    setDataToRedis(element,key,userId,value);
+                    redisService.set(element,userId,value);
                 }
             });
         }catch (IOException | MyException | InvocationTargetException | IllegalAccessException e){
@@ -112,27 +112,6 @@ public class AsyncServiceImpl implements AsyncService {
     }
 
     /**
-     *
-     * @param keyPrefix
-     * @param key
-     * @param userId
-     * @param value
-     * @param <T>
-     */
-    @Override
-    public <T> void setDataToRedis(KeyPrefix keyPrefix,String key,String userId,T value){
-        if(value instanceof Video){
-            redisService.set(keyPrefix,key,value);
-            return;
-        }
-        if(value instanceof VideoCover){
-            redisService.setList(keyPrefix,userId,value);
-        }
-        redisService.set(keyPrefix,key,value);
-        redisService.setList(keyPrefix,userId,value);
-    }
-
-    /**
      * 第一个前缀必须是key-value类型 第二个前缀必须是key-list类型
      * @param key
      * @param userId
@@ -142,6 +121,20 @@ public class AsyncServiceImpl implements AsyncService {
      */
     @Override
     public <T> void setDataToRedis(String key, String userId, T value, KeyPrefix... keyPrefixes) {
+        int length = keyPrefixes.length;
+        if(length == 0 || length > 2){
+            return;
+        }
+        if(length == 1){
+            KeyPrefix keyPrefix = keyPrefixes[0];
+            if(keyPrefix instanceof VideoKey){
+                redisService.set(keyPrefix,key,value);
+            }
+            if(keyPrefix instanceof VideoCoverKey){
+                redisService.setList(keyPrefix,userId,value);
+            }
+            return;
+        }
         redisService.set(keyPrefixes[0],key,value);
         redisService.setList(keyPrefixes[1],userId,value);
     }

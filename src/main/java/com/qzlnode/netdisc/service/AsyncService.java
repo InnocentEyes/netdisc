@@ -1,8 +1,6 @@
 package com.qzlnode.netdisc.service;
 
-import com.qzlnode.netdisc.pojo.VideoCover;
 import com.qzlnode.netdisc.redis.KeyPrefix;
-import lombok.Data;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -11,16 +9,6 @@ import java.util.List;
  * @author qzlzzz
  */
 public interface AsyncService {
-
-    /**
-     *
-     * @param keyPrefix
-     * @param key
-     * @param userId
-     * @param value
-     * @param <T>
-     */
-    <T> void setDataToRedis(KeyPrefix keyPrefix,String key,String userId,T value);
 
     /**
      *
