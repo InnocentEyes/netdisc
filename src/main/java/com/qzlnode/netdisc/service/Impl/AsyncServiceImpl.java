@@ -69,6 +69,7 @@ public class AsyncServiceImpl implements AsyncService {
             Video video = fileInfoHandler.fileInfoToBean(file, uploadRes, Video.class);
             Integer coverId = (Integer) value.getClass().getMethod("getVideoCoverId").invoke(value);
             video.setVideoCoverId(coverId);
+            videoDao.insert(video);
             value.getClass().getMethod("setVideo").invoke(value,video);
             Arrays.stream(keyPrefix).forEach(element -> {
                 if(element instanceof VideoKey){
