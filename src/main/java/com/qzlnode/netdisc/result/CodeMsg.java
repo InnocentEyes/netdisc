@@ -72,6 +72,11 @@ public class CodeMsg {
      */
     public static CodeMsg UNFOUND_VIDEO = new CodeMsg(500710,"视频资源获取失败");
 
+    /**
+     * 音频端
+     */
+    public static CodeMsg MUSIC_TYPE_ERROR = new CodeMsg(500810,"音乐类型错误");
+
     public CodeMsg() {
     }
 

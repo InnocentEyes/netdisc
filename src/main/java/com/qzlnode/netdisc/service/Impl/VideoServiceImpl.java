@@ -78,31 +78,20 @@ public class VideoServiceImpl extends ServiceImpl<VideoCoverDao, VideoCover> imp
      */
     @Override
     public Video getVideoByCoverId(Integer coverId) {
-        Video video = null;
         String key = String.valueOf(coverId);
-        int parkCount = 0;
-        while((video = redisService.get(VideoKey.video,key,Video.class)) == null){
-            if(parkCount == 5){
-                throw new GetTimeOutException("获取时间过长");
-            }
-            LockSupport.parkNanos(1000);
-            parkCount++;
+        while (AsyncServiceImpl.target.get() != 0){
+            LockSupport.parkNanos(100);
         }
-        return video;
+        return redisService.get(VideoKey.video,key,Video.class);
     }
 
     @Override
     public List<VideoCover> getUserVideoList() {
         String userId = String.valueOf(MessageHolder.getUserId());
-        VideoCover[] videoCovers = null;
-        int parkCount = 0;
-        while((videoCovers = redisService.get(VideoCoverKey.videoCoverList, userId, VideoCover[].class)) == null){
-            if(parkCount == 5){
-                throw new GetTimeOutException("获取时间过长");
-            }
-            LockSupport.parkNanos(1000);
-            parkCount++;
+        while (AsyncServiceImpl.target.get() != 0){
+            LockSupport.parkNanos(100);
         }
+        VideoCover[] videoCovers = redisService.get(VideoCoverKey.videoCoverList,userId,VideoCover[].class);
         return Arrays.stream(videoCovers)
                 .collect(Collectors.toList());
     }
@@ -122,6 +111,12 @@ public class VideoServiceImpl extends ServiceImpl<VideoCoverDao, VideoCover> imp
             return null;
         }
         return videoCover;
+    }
+
+    @Override
+    public VideoCover getCoverWithVideo(Integer coverId) {
+        String key = String.valueOf(coverId);
+        return redisService.get(VideoCoverKey.videoCover,key,VideoCover.class);
     }
 
 }

@@ -45,4 +45,11 @@ public interface VideoService extends IService<VideoCover> {
      * @return
      */
     VideoCover saveVideoCover(VideoCover videoCover);
+
+    /**
+     *
+     * @param coverId
+     * @return
+     */
+    VideoCover getCoverWithVideo(Integer coverId);
 }

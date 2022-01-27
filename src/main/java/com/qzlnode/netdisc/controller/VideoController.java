@@ -88,7 +88,7 @@ public class VideoController {
          */
         String key = String.valueOf(cover.getVideoCoverId());
         String userId = String.valueOf(MessageHolder.getUserId());
-        asyncService.saveVideo(key,userId,file,cover, VideoKey.video, VideoCoverKey.videoCoverList);
+        asyncService.saveVideo(key,userId,file,cover, VideoKey.video, VideoCoverKey.videoCoverList, VideoCoverKey.videoCover);
         return Result.success(cover,CodeMsg.SUCCESS);
     }
 
@@ -97,7 +97,7 @@ public class VideoController {
      * @param coverId
      * @return
      */
-    @GetMapping("/get/{coverId}")
+    @GetMapping("/getVideo/{coverId}")
     public Result<Video> getVideo(@PathVariable(value = "coverId",required = false) Integer coverId){
         if(coverId == null){
             logger.info("无参数接受至服务端");
@@ -117,6 +117,20 @@ public class VideoController {
         return videoCoverList == null ?
                 Result.error(CodeMsg.UNFOUND_VIDEO) :
                 Result.success(videoCoverList,CodeMsg.SUCCESS);
+    }
+
+    /**
+     *
+     * @param coverId
+     * @return
+     */
+    @GetMapping("/get/{coverId}")
+    public Result<VideoCover> getCoverWithVideo(@PathVariable(value = "coverId",required = false) Integer coverId){
+        if(coverId == null){
+            return Result.error(CodeMsg.BIND_ERROR);
+        }
+        VideoCover cover = videoService.getCoverWithVideo(coverId);
+        return cover == null ? Result.error(CodeMsg.FILE_NO_EXIST) : Result.success(cover,CodeMsg.SUCCESS);
     }
 
     /**
@@ -162,7 +176,7 @@ public class VideoController {
          * 启动异步
          */
         String userId = String.valueOf(MessageHolder.getUserId());
-        asyncService.saveBatchVideo(files,covers,userId,VideoKey.video,VideoCoverKey.videoCoverList);
+        asyncService.saveBatchVideo(files,covers,userId,VideoKey.video,VideoCoverKey.videoCoverList,VideoCoverKey.videoCover);
         return covers == null ? Result.error(CodeMsg.FILE_UPLOAD_ERROR) : Result.success(covers,CodeMsg.SUCCESS);
     }
 
@@ -188,7 +202,7 @@ public class VideoController {
          */
         String key = String.valueOf(single.getVideoCoverId());
         String userId = String.valueOf(MessageHolder.getUserId());
-        asyncService.saveVideo(key,userId,video,single,VideoKey.video,VideoCoverKey.videoCoverList);
+        asyncService.saveVideo(key,userId,video,single,VideoKey.video,VideoCoverKey.videoCoverList,VideoCoverKey.videoCover);
         return Result.success(single,CodeMsg.SUCCESS);
     }
 

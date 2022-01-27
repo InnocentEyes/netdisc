@@ -10,6 +10,7 @@ import com.qzlnode.netdisc.pojo.UserInfo;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.Date;
 import java.util.UUID;
 
@@ -26,6 +27,17 @@ public class Security {
 
     private static final String TOKEN_KEY = UUID.randomUUID().toString();
 
+    private static final String SQUID = "X-Forwarded-For";
+
+    private static final String APACHE = "Proxy-Client-IP";
+
+    private static final String WEBLOGIC = "WL-Proxy-Client-IP";
+
+    private static final String NGINX = "X-Real-IP";
+
+    private static final String OHTER =  "HTTP_CLIENT_IP";
+
+    private static final String UNKNOWN = "unknown";
     /**
      * <h3>生成token,便于验证,权限检验等</h3>
      * @param user user message
@@ -71,6 +83,35 @@ public class Security {
        }catch (SignatureVerificationException exception){
             return false;
        }
+    }
+
+    /**
+     * 获取请求方的ip地址
+     * @param request
+     * @return
+     */
+    public static String getIPAddress(HttpServletRequest request){
+        String ip = null;
+        String ipAddresses = request.getHeader(SQUID);
+        if(ipAddresses == null || ipAddresses.length() == 0 || UNKNOWN.equalsIgnoreCase(ipAddresses)){
+            ipAddresses = request.getHeader(APACHE);
+        }
+        if(ipAddresses == null || ipAddresses.length() == 0 || UNKNOWN.equalsIgnoreCase(ipAddresses)){
+            ipAddresses = request.getHeader(WEBLOGIC);
+        }
+        if(ipAddresses == null || ipAddresses.length() == 0 || UNKNOWN.equalsIgnoreCase(ipAddresses)){
+            ipAddresses = request.getHeader(OHTER);
+        }
+        if(ipAddresses == null || ipAddresses.length() == 0 || UNKNOWN.equalsIgnoreCase(ipAddresses)){
+            ipAddresses = request.getHeader(NGINX);
+        }
+        if(ipAddresses != null && ipAddresses.length() != 0){
+            ip = ipAddresses.split(",")[0];
+        }
+        if(ip == null || ip.length() == 0 || UNKNOWN.equalsIgnoreCase(ipAddresses)){
+            ip = request.getRemoteAddr();
+        }
+        return "0:0:0:0:0:0:0:1".equals(ip) ? "127.0.0.1" : ip;
     }
 
 }

@@ -1,15 +1,12 @@
 package com.qzlnode.netdisc.util;
 
-import com.qzlnode.netdisc.exception.InconsistentException;
+import com.qzlnode.netdisc.pojo.Music;
 import org.springframework.cglib.core.ReflectUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 
 /**
  * @author qzlzzz
@@ -40,7 +37,7 @@ public class FileInfoHandler {
      */
     public  <T> T fileInfoToBean(MultipartFile file, String[] filePath, Class<T> claszz)
             throws InvocationTargetException, IllegalAccessException{
-        if(file == null && file.isEmpty()){
+        if(file == null && file.isEmpty() && file.getOriginalFilename() == null){
             return null;
         }
         T instance = (T) ReflectUtils.newInstance(claszz);
@@ -98,7 +95,7 @@ public class FileInfoHandler {
      * @throws InvocationTargetException
      * @throws IllegalAccessException
      */
-    public <T> T pathBean(String[] resPath,T value) throws InvocationTargetException, IllegalAccessException {
+    public <T> T pathToBean(String[] resPath,T value) throws InvocationTargetException, IllegalAccessException {
         for (PropertyDescriptor beanSetter : ReflectUtils.getBeanSetters(value.getClass())) {
             String name = beanSetter.getName();
             if(name.contains(FILE_GROUP_NAME)){

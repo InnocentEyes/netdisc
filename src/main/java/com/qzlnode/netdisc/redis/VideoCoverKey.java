@@ -17,4 +17,6 @@ public class VideoCoverKey extends BasePrefix{
 
     public static VideoCoverKey videoCoverList = new VideoCoverKey(0,"videoCoverList");
 
+    public static VideoCoverKey videoCover = new VideoCoverKey(0,"videoCover");
+
 }
