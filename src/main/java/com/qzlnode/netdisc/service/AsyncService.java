@@ -41,4 +41,11 @@ public interface AsyncService {
      */
     <T> void saveBatchVideo(MultipartFile[] files, List<T> values, String userId, KeyPrefix... keyPrefixes);
 
+    /**
+     *
+     * @param file
+     * @param fileId
+     */
+    void saveDocument(MultipartFile file,Integer fileId);
+
 }

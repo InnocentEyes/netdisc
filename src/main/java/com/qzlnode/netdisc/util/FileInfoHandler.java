@@ -1,5 +1,6 @@
 package com.qzlnode.netdisc.util;
 
+import com.qzlnode.netdisc.pojo.Document;
 import com.qzlnode.netdisc.pojo.Img;
 import com.qzlnode.netdisc.pojo.Music;
 import com.qzlnode.netdisc.pojo.Video;
@@ -38,6 +39,8 @@ public class FileInfoHandler {
 
     private static final String[] SUPPORT_IMG = {"jpg","jpeg","gif","png","bmp","wimp"};
 
+    private static final String[] SUPPORT_DOCUMENT = {"docx","doc","pdf","pptx","ppt","html","htm","csv","txt"};
+
     /**
      *
      * @param file
@@ -59,17 +62,17 @@ public class FileInfoHandler {
             if(name.contains(FILE_TYPE)){
                 beanSetter.getWriteMethod().invoke(instance,file.getContentType());
             }
+            if(name.contains(FILE_ORIGIN_NAME)){
+                beanSetter.getWriteMethod().invoke(instance,file.getOriginalFilename());
+            }
             if(name.contains(FILE_SIZE)){
                 beanSetter.getWriteMethod().invoke(instance,file.getSize());
             }
-            if(name.contains(FILE_GROUP_NAME)){
+            if(filePath != null && name.contains(FILE_GROUP_NAME)){
                 beanSetter.getWriteMethod().invoke(instance,filePath[0]);
             }
-            if(name.contains(FILE_REMOTE_PATH)){
+            if(filePath != null && name.contains(FILE_REMOTE_PATH)){
                 beanSetter.getWriteMethod().invoke(instance,filePath[1]);
-            }
-            if(name.contains(FILE_ORIGIN_NAME)){
-                beanSetter.getWriteMethod().invoke(instance,file.getOriginalFilename());
             }
         }
         return instance;
@@ -114,6 +117,9 @@ public class FileInfoHandler {
         }
         if(claszz.isAssignableFrom(Img.class)){
             return check(originName,SUPPORT_IMG);
+        }
+        if(claszz.isAssignableFrom(Document.class)){
+            return check(originName,SUPPORT_DOCUMENT);
         }
         return false;
     }

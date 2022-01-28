@@ -13,36 +13,27 @@ import lombok.NoArgsConstructor;
  * @author qzlzzz
  */
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
-@TableName("music")
-public class Music {
+@AllArgsConstructor
+@TableName("file")
+public class Document {
 
-    @TableId(value = "music_id",type = IdType.AUTO)
-    private Integer musicId;
+    @TableId(value = "file_id",type = IdType.AUTO)
+    private Integer fileId;
 
     @TableId(value = "user_id",type = IdType.NONE)
     @JsonIgnore
     private Integer userId;
 
-    @TableField(value = "singer")
-    private String singer;
+    @TableField(value = "file_size")
+    private long fileSize;
 
-    @TableField(value = "song_name")
-    private String songName;
-
-    @TableField(value = "music_origin_name")
-    private String musicOriginName;
-
-    @TableField(value = "music_type")
-    private String musicType;
-
-    @TableField(value = "music_size")
-    private long musicSize;
+    @TableField(value = "file_type")
+    private String fileType;
 
     @TableField(value = "group_name")
     private String groupName;
 
-    @TableField(value = "music_remote_path")
-    private String musicRemotePath;
+    @TableField(value = "file_remote_path")
+    private String fileRemotePath;
 }

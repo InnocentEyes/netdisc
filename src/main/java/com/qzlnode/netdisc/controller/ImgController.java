@@ -62,7 +62,7 @@ public class ImgController {
      * @return
      */
     @PostMapping("/single/upload")
-    public Result<Img> imgUpload(@RequestParam("img")MultipartFile img) throws IOException, MyException,
+    public Result<Img> singleUpload(@RequestParam("img")MultipartFile img) throws IOException, MyException,
             InvocationTargetException, IllegalAccessException{
         if(!fileHandler.isSupport(img.getOriginalFilename(),Img.class)){
             return Result.error(CodeMsg.IMG_TYPE_ERROR);

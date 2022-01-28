@@ -1,7 +1,10 @@
 package com.qzlnode.netdisc.service.Impl;
 
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.qzlnode.netdisc.dao.DocumentDao;
 import com.qzlnode.netdisc.dao.VideoDao;
 import com.qzlnode.netdisc.fastdfs.FastDFS;
+import com.qzlnode.netdisc.pojo.Document;
 import com.qzlnode.netdisc.pojo.Video;
 import com.qzlnode.netdisc.redis.KeyPrefix;
 import com.qzlnode.netdisc.redis.RedisService;
@@ -50,6 +53,9 @@ public class AsyncServiceImpl implements AsyncService {
     private VideoDao videoDao;
 
     @Autowired
+    private DocumentDao documentDao;
+
+    @Autowired
     private RedisService redisService;
 
 
@@ -75,7 +81,7 @@ public class AsyncServiceImpl implements AsyncService {
                     redisService.set(element,key,video);
                 }
                 if(element instanceof VideoCoverKey && element.getPrefix().contains(DIFFERENCE)){
-                    redisService.set(element,userId,value);
+                    redisService.setList(element,userId,value);
                 }
                 if(element instanceof VideoCoverKey){
                     redisService.set(element,key,value);
@@ -114,6 +120,28 @@ public class AsyncServiceImpl implements AsyncService {
             }
             saveVideo(key,userId,file,value,keyPrefixes);
         }
+    }
+
+    @Override
+    public void saveDocument(MultipartFile file, Integer fileId) {
+        if(file == null || fileId == null || fileId == 0){
+            return;
+        }
+        try {
+            String[] uploadRes = dfs.upload(file.getBytes(),file.getOriginalFilename().split("\\.")[1]);
+            Document document = fileInfoHandler.fileInfoToBean(file,uploadRes, Document.class);
+            documentDao.update(
+                    null,
+                    Wrappers.lambdaUpdate(Document.class)
+                            .eq(Document::getFileId, fileId)
+                            .set(Document::getGroupName, document.getGroupName())
+                            .set(Document::getFileRemotePath, document.getFileRemotePath()));
+        } catch (MyException | IOException | InvocationTargetException | IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (Exception e){
+            logger.error("run the async method get a unexpected exception {} , the reason is {}",e,e.getMessage());
+        }
+
     }
 
     /**

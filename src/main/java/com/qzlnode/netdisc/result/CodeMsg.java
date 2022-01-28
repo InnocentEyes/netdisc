@@ -77,6 +77,11 @@ public class CodeMsg {
      */
     public static CodeMsg MUSIC_TYPE_ERROR = new CodeMsg(500810,"音乐类型错误");
 
+    /**
+     * 文档文件端
+     */
+    public static CodeMsg DOCUMENT_TYPE_ERROR = new CodeMsg(500910,"文档文件类型错误");
+
     public CodeMsg() {
     }
 
