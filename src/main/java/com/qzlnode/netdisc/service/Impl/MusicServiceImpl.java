@@ -1,5 +1,6 @@
 package com.qzlnode.netdisc.service.Impl;
 
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.qzlnode.netdisc.dao.MusicDao;
 import com.qzlnode.netdisc.pojo.Music;
 import com.qzlnode.netdisc.redis.MusicKey;
@@ -17,7 +18,7 @@ import java.util.stream.Collectors;
  * @author qzlzzz
  */
 @Service
-public class MusicServiceImpl implements MusicService {
+public class MusicServiceImpl extends ServiceImpl<MusicDao,Music> implements MusicService {
 
     @Autowired
     private MusicDao musicDao;

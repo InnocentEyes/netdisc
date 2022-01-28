@@ -1,6 +1,5 @@
 package com.qzlnode.netdisc.controller;
 
-import com.qzlnode.netdisc.exception.GetTimeOutException;
 import com.qzlnode.netdisc.exception.UploadFileToLargeException;
 import com.qzlnode.netdisc.fastdfs.FastDFS;
 import com.qzlnode.netdisc.pojo.Video;
@@ -88,7 +87,12 @@ public class VideoController {
          */
         String key = String.valueOf(cover.getVideoCoverId());
         String userId = String.valueOf(MessageHolder.getUserId());
-        asyncService.saveVideo(key,userId,file,cover, VideoKey.video, VideoCoverKey.videoCoverList, VideoCoverKey.videoCover);
+        asyncService.saveVideo(
+                key,
+                userId,
+                file,
+                cover,
+                VideoKey.video, VideoCoverKey.videoCoverList, VideoCoverKey.videoCover);
         return Result.success(cover,CodeMsg.SUCCESS);
     }
 
@@ -176,7 +180,12 @@ public class VideoController {
          * 启动异步
          */
         String userId = String.valueOf(MessageHolder.getUserId());
-        asyncService.saveBatchVideo(files,covers,userId,VideoKey.video,VideoCoverKey.videoCoverList,VideoCoverKey.videoCover);
+        asyncService.saveBatchVideo(
+                files,
+                covers,
+                userId,
+                VideoKey.video,
+                VideoCoverKey.videoCoverList,VideoCoverKey.videoCover);
         return covers == null ? Result.error(CodeMsg.FILE_UPLOAD_ERROR) : Result.success(covers,CodeMsg.SUCCESS);
     }
 
@@ -193,6 +202,7 @@ public class VideoController {
         }
         String[] uploadRes = fastDFS.upload(cover.getBytes(),cover.getOriginalFilename().split(".")[1]);
         VideoCover single = fileInfoHandler.fileInfoToBean(cover,uploadRes,VideoCover.class);
+        single.setUserId(MessageHolder.getUserId());
         single = videoService.saveVideoCover(single);
         if(single == null){
             return Result.error(CodeMsg.FILE_UPLOAD_ERROR);
@@ -202,7 +212,12 @@ public class VideoController {
          */
         String key = String.valueOf(single.getVideoCoverId());
         String userId = String.valueOf(MessageHolder.getUserId());
-        asyncService.saveVideo(key,userId,video,single,VideoKey.video,VideoCoverKey.videoCoverList,VideoCoverKey.videoCover);
+        asyncService.saveVideo(
+                key,
+                userId,
+                video,single,
+                VideoKey.video,VideoCoverKey.videoCoverList,VideoCoverKey.videoCover
+        );
         return Result.success(single,CodeMsg.SUCCESS);
     }
 
@@ -217,7 +232,6 @@ public class VideoController {
             MyException.class,
             InvocationTargetException.class,
             IllegalAccessException.class,
-            GetTimeOutException.class
     })
     public Result handlerError(Exception exception, HttpServletRequest request){
         MessageHolder.clearData();

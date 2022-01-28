@@ -1,5 +1,6 @@
 package com.qzlnode.netdisc.service;
 
+import com.baomidou.mybatisplus.extension.service.IService;
 import com.qzlnode.netdisc.pojo.Music;
 
 import java.util.List;
@@ -7,7 +8,7 @@ import java.util.List;
 /**
  * @author qzlzzz
  */
-public interface MusicService {
+public interface MusicService extends IService<Music> {
 
     /**
      *

@@ -1,6 +1,7 @@
 package com.qzlnode.netdisc.controller;
 
 import com.qzlnode.netdisc.exception.NoSuchFileException;
+import com.qzlnode.netdisc.exception.UploadFileToLargeException;
 import com.qzlnode.netdisc.fastdfs.FastDFS;
 import com.qzlnode.netdisc.pojo.Music;
 import com.qzlnode.netdisc.redis.MusicKey;
@@ -25,6 +26,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -34,31 +36,9 @@ import java.util.List;
 @RestController
 public class MusicController {
 
-    private static final String MUSIC_LOGO = "-";
-
-    private static final String UNNAMED_SINGER = "未知歌手";
-
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private static final String[] SUPPORT_MUSIC = {
-            "mp3",
-            "m4a",
-            "wav",
-            "amr",
-            "awb",
-            "aac",
-            "flac",
-            "mid",
-            "midi",
-            "xmf",
-            "rtx",
-            "ota",
-            "wma",
-            "ra",
-            "mka",
-            "m3u",
-            "pls"
-    };
+    private static final Integer MAX_MUSIC_UPLOAD = 3;
 
     @Autowired
     private FastDFS fastDFS;
@@ -79,13 +59,13 @@ public class MusicController {
             logger.info("无文件接受至服务端");
             return Result.error(CodeMsg.FILE_CANNOT_ACCPET);
         }
-        if(!isMusic(file.getOriginalFilename())){
+        if(!fileInfoHandler.isSupport(file.getOriginalFilename(),Music.class)){
             return Result.error(CodeMsg.MUSIC_TYPE_ERROR);
         }
         String[] fileNameInfo = file.getOriginalFilename().split("\\.",2);
         String[] uploadRes = fastDFS.upload(file.getBytes(),fileNameInfo[1]);
         Music music = fileInfoHandler.fileInfoToBean(file,uploadRes, Music.class);
-        handlerNameInfo(fileNameInfo[0], music);
+        music = fileInfoHandler.handlerNameInfo(fileNameInfo[0], music);
         music.setUserId(MessageHolder.getUserId());
         music = musicService.saveMusic(music);
         String userId = String.valueOf(MessageHolder.getUserId());
@@ -124,33 +104,41 @@ public class MusicController {
         return muscles == null ? Result.error(CodeMsg.FILE_NO_EXIST) : Result.success(muscles,CodeMsg.SUCCESS);
     }
 
-
-    private boolean isMusic(String originName){
-        if(originName == null){
-            return false;
+    @PostMapping("/multi/upload")
+    public Result<List<Music>> multiUpload(@RequestParam(value = "musics",required = false) MultipartFile[] files)
+            throws IOException, MyException, InvocationTargetException, IllegalAccessException {
+        if(files == null){
+            return Result.error(CodeMsg.FILE_CANNOT_ACCPET);
         }
-        for (String support : SUPPORT_MUSIC) {
-            if(originName.endsWith(support)){
-                return true;
+        if(files.length > MAX_MUSIC_UPLOAD){
+            throw new UploadFileToLargeException("上传文件超出限制");
+        }
+        List<Music> musics = new ArrayList<>();
+        for (MultipartFile file : files) {
+            if(!fileInfoHandler.isSupport(file.getOriginalFilename(),Music.class)){
+                return Result.error(CodeMsg.MUSIC_TYPE_ERROR);
             }
+            String[] fileNameInfo = file.getOriginalFilename().split("\\.",2);
+            String[] uploadRes = fastDFS.upload(file.getBytes(),fileNameInfo[1]);
+            Music music = fileInfoHandler.handlerNameInfo(
+                    fileNameInfo[0],
+                    fileInfoHandler.fileInfoToBean(file,uploadRes,Music.class)
+            );
+            music.setUserId(MessageHolder.getUserId());
+            musics.add(music);
         }
-        return false;
-    }
-
-    private Music handlerNameInfo(String fileName,Music music){
-        if(!fileName.contains(MUSIC_LOGO)){
-            music.setSinger(UNNAMED_SINGER);
-            music.setSongName(fileName);
-            return music;
-        }
-        String[] detail = fileName.split("-", 2);
-        music.setSinger(detail[0]);
-        music.setSongName(detail[1]);
-        return music;
+        return musicService.saveBatch(musics) ?
+                Result.success(musics,CodeMsg.SUCCESS) :
+                Result.error(CodeMsg.FILE_UPLOAD_ERROR);
     }
 
     @ExceptionHandler({
-            NoSuchFileException.class
+            NoSuchFileException.class,
+            IOException.class,
+            MyException.class,
+            InvocationTargetException.class,
+            IllegalAccessException.class,
+            UploadFileToLargeException.class
     })
     public Result handlerError(Exception exception, HttpServletRequest request){
         String ip = Security.getIPAddress(request);

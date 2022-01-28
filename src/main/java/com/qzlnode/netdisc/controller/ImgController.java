@@ -27,7 +27,6 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Pattern;
 
 /**
  * @author qzlzzz
@@ -64,9 +63,8 @@ public class ImgController {
      */
     @PostMapping("/single/upload")
     public Result<Img> imgUpload(@RequestParam("img")MultipartFile img) throws IOException, MyException,
-            InvocationTargetException, IllegalAccessException, NoSuchMethodException {
-        String suffix = "png|jpe?g|bmp";
-        if(!Pattern.compile(suffix).matcher(img.getContentType()).find()){
+            InvocationTargetException, IllegalAccessException{
+        if(!fileHandler.isSupport(img.getOriginalFilename(),Img.class)){
             return Result.error(CodeMsg.IMG_TYPE_ERROR);
         }
         String[] uploadRes = fastDFS.upload(img.getBytes(), img.getOriginalFilename().split(".")[1]);
@@ -135,15 +133,17 @@ public class ImgController {
         if(files.length > MAX_FILE_UPLOAD_COUNT) {
             throw new UploadFileToLargeException("文件上传数量超过限制。");
         }
-        String suffix = "png|jpe?g|bmp";
         List<Img> imgs = new ArrayList<>();
+        Integer userId = MessageHolder.getUserId();
         for (MultipartFile file : files) {
-            if(!Pattern.compile(suffix).matcher(file.getContentType()).find()){
+            if(!fileHandler.isSupport(file.getOriginalFilename(),Img.class)){
                 return Result.error(CodeMsg.IMG_TYPE_ERROR);
             }
             String fileExtName = file.getOriginalFilename().split(".")[1];
             String[] filePath = fastDFS.upload(file.getBytes(), fileExtName);
-            imgs.add(fileHandler.fileInfoToBean(file,filePath,Img.class));
+            Img img = fileHandler.fileInfoToBean(file,filePath,Img.class);
+            img.setUserId(userId);
+            imgs.add(img);
         }
         imgs = service.saveMultImg(imgs);
         return imgs == null ?

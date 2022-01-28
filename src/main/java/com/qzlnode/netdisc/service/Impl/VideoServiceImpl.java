@@ -3,7 +3,6 @@ package com.qzlnode.netdisc.service.Impl;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.qzlnode.netdisc.dao.VideoCoverDao;
 import com.qzlnode.netdisc.dao.VideoDao;
-import com.qzlnode.netdisc.exception.GetTimeOutException;
 import com.qzlnode.netdisc.pojo.Video;
 import com.qzlnode.netdisc.pojo.VideoCover;
 import com.qzlnode.netdisc.redis.RedisService;
@@ -116,6 +115,9 @@ public class VideoServiceImpl extends ServiceImpl<VideoCoverDao, VideoCover> imp
     @Override
     public VideoCover getCoverWithVideo(Integer coverId) {
         String key = String.valueOf(coverId);
+        while (AsyncServiceImpl.target.get() != 0){
+            LockSupport.parkNanos(100);
+        }
         return redisService.get(VideoCoverKey.videoCover,key,VideoCover.class);
     }
 

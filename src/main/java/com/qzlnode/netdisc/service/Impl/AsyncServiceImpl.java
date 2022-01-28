@@ -65,15 +65,6 @@ public class AsyncServiceImpl implements AsyncService {
         try{
             target.incrementAndGet();
             String[] uploadRes = dfs.upload(file.getBytes(),file.getOriginalFilename().split("\\.")[1]);
-            if(value instanceof Video && keyPrefix.length == 1 && keyPrefix[0] instanceof VideoKey){
-                if(value.getClass().getMethod("getVideoCoverId").invoke(value) == null){
-                    return;
-                }
-                Video video = (Video)fileInfoHandler.pathToBean(uploadRes, value);
-                videoDao.insert(video);
-                redisService.set(keyPrefix[0],key,video);
-                return;
-            }
             Video video = fileInfoHandler.fileInfoToBean(file, uploadRes, Video.class);
             Integer coverId = (Integer) value.getClass().getMethod("getVideoCoverId").invoke(value);
             video.setVideoCoverId(coverId);
