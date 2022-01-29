@@ -9,7 +9,7 @@ public interface KeyPrefix {
      *
      * @return
      */
-    int getExpireSeconds();
+    long getExpireSeconds();
 
     /**
      *

@@ -5,7 +5,7 @@ package com.qzlnode.netdisc.redis;
  */
 public class BasePrefix implements KeyPrefix{
 
-    private int expireSeconds;
+    private long expireSeconds;
 
     private String prefix;
 
@@ -14,13 +14,13 @@ public class BasePrefix implements KeyPrefix{
         this(0,prefix);
     }
 
-    public BasePrefix(int expireSeconds, String prefix) {
+    public BasePrefix(long expireSeconds, String prefix) {
         this.expireSeconds = expireSeconds;
         this.prefix = prefix;
     }
 
     @Override
-    public int getExpireSeconds() {
+    public long getExpireSeconds() {
         return expireSeconds;
     }
 

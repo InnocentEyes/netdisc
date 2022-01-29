@@ -2,7 +2,7 @@ package com.qzlnode.netdisc.redis;
 
 public class DocumentKey extends BasePrefix{
 
-    public DocumentKey(int expireSeconds, String prefix) {
+    public DocumentKey(long expireSeconds, String prefix) {
         super(expireSeconds, prefix);
     }
 

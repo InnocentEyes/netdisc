@@ -46,6 +46,13 @@ public interface AsyncService {
      * @param file
      * @param fileId
      */
-    void saveDocument(MultipartFile file,Integer fileId);
+    void saveDocument(MultipartFile file,Integer fileId,Integer userId);
+
+    /**
+     *
+     * @param files
+     * @param fileIds
+     */
+    void saveBatchDocument(MultipartFile[] files,Integer[] fileIds,Integer userId);
 
 }

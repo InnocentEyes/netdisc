@@ -5,7 +5,7 @@ package com.qzlnode.netdisc.redis;
  */
 public class VideoKey extends BasePrefix{
 
-    private VideoKey(int expireSeconds, String prefix) {
+    private VideoKey(long expireSeconds, String prefix) {
         super(expireSeconds, prefix);
     }
 

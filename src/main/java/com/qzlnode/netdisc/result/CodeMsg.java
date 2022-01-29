@@ -16,7 +16,7 @@ public class CodeMsg {
 
     public static CodeMsg ERROR = new CodeMsg(-1,"error :( ");
 
-    public static CodeMsg SERVER_ERROR = new CodeMsg(500100, "服务端异常");
+    public static CodeMsg SERVER_ERROR = new CodeMsg(500100, "参数错误");
 
     public static CodeMsg BIND_ERROR = new CodeMsg(500101, "无参数接受至服务端,请检查前端代码");
 

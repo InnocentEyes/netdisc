@@ -10,7 +10,7 @@ public class ImgKey extends BasePrefix{
      * @param expireSeconds
      * @param prefix
      */
-    private ImgKey(int expireSeconds, String prefix) {
+    private ImgKey(long expireSeconds, String prefix) {
         super(expireSeconds, prefix);
     }
 

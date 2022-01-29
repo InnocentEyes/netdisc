@@ -5,8 +5,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
+
+import java.util.Arrays;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 自己封装的对redis缓存库的操作,能运行就行。
@@ -21,7 +25,7 @@ public class RedisService {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Autowired
-    private RedisTemplate<String,String> redis;
+    private StringRedisTemplate redis;
 
     private final ObjectMapper mapper = new ObjectMapper();
 
@@ -41,6 +45,9 @@ public class RedisService {
         }
         try{
             redis.opsForValue().set(realKey,str);
+            if(keyPrefix.getExpireSeconds() > 0){
+                redis.expire(realKey,keyPrefix.getExpireSeconds(),TimeUnit.MILLISECONDS);
+            }
             return true;
         }catch (Exception ex){
             logger.error("set key to redis error.\n" +
@@ -73,6 +80,27 @@ public class RedisService {
         }
     }
 
+    public <T> boolean setSet(KeyPrefix keyPrefix, String key, T... values){
+        String realKey = keyPrefix.getPrefix() + key;
+        try {
+            if(values.length == 1){
+                String str = beanToJson(values[0]);
+                redis.opsForSet().add(realKey,str);
+            }
+            if(values.length > 1) {
+                redis.opsForSet().add(realKey, Arrays.stream(values).map(this::beanToJson).toArray(String[]::new));
+            }
+            if (keyPrefix.getExpireSeconds() > 0) {
+                redis.expire(realKey, keyPrefix.getExpireSeconds(), TimeUnit.MILLISECONDS);
+            }
+            return true;
+        }catch (Exception ex){
+            logger.error("set key to redis error.\n" +
+                    "the reason is {}",ex.getMessage());
+            return false;
+        }
+    }
+
     /**
      * 根据key将值从redis中取出，并处理成需要的类型
      * @param keyPrefix key的前缀
@@ -89,13 +117,17 @@ public class RedisService {
                 return jsonToBean(str,claszz);
             }
             StringBuilder builder = new StringBuilder();
-            redis.opsForList()
-                    .range(realKey,0,-1)
-                    .stream()
+            Set<String> members = redis.opsForSet().members(realKey);
+            if(members == null){
+                return null;
+            }
+            members.stream()
+                    .filter(String::isEmpty)
                     .forEach(element -> {
                         builder.append(element);
                         builder.append(",");
                     });
+            builder.delete(builder.length() - 1,builder.length());
             return jsonToBean(builder.toString(),claszz);
         }catch (Exception ex){
             logger.error("get key value from redis error.\n" +

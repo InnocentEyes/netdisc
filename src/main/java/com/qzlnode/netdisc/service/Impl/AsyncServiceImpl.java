@@ -6,10 +6,7 @@ import com.qzlnode.netdisc.dao.VideoDao;
 import com.qzlnode.netdisc.fastdfs.FastDFS;
 import com.qzlnode.netdisc.pojo.Document;
 import com.qzlnode.netdisc.pojo.Video;
-import com.qzlnode.netdisc.redis.KeyPrefix;
-import com.qzlnode.netdisc.redis.RedisService;
-import com.qzlnode.netdisc.redis.VideoCoverKey;
-import com.qzlnode.netdisc.redis.VideoKey;
+import com.qzlnode.netdisc.redis.*;
 import com.qzlnode.netdisc.service.AsyncService;
 import com.qzlnode.netdisc.util.FileInfoHandler;
 import org.csource.common.MyException;
@@ -25,6 +22,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -42,6 +41,8 @@ public class AsyncServiceImpl implements AsyncService {
     private static final String DIFFERENCE = "List";
 
     public static AtomicInteger target = new AtomicInteger(0);
+
+    public static Map<Integer,Map<String,Object>> Cache = new ConcurrentHashMap<>();
 
     @Autowired
     private FastDFS dfs;
@@ -123,10 +124,12 @@ public class AsyncServiceImpl implements AsyncService {
     }
 
     @Override
-    public void saveDocument(MultipartFile file, Integer fileId) {
+    public void saveDocument(MultipartFile file, Integer fileId,Integer userId) {
         if(file == null || fileId == null || fileId == 0){
             return;
         }
+        String key = DocumentKey.document.getPrefix() + userId + fileId;
+        Cache.computeIfAbsent(userId,k -> new ConcurrentHashMap<>()).computeIfAbsent(key,k -> new Object());
         try {
             String[] uploadRes = dfs.upload(file.getBytes(),file.getOriginalFilename().split("\\.")[1]);
             Document document = fileInfoHandler.fileInfoToBean(file,uploadRes, Document.class);
@@ -140,8 +143,24 @@ public class AsyncServiceImpl implements AsyncService {
             e.printStackTrace();
         } catch (Exception e){
             logger.error("run the async method get a unexpected exception {} , the reason is {}",e,e.getMessage());
+        }finally {
+            Cache.get(userId).remove(key);
         }
 
+    }
+
+    @Override
+    public void saveBatchDocument(MultipartFile[] files,Integer[] fileIds,Integer userId){
+        if(files == null || fileIds == null){
+            return;
+        }
+        if(files.length == 0 || fileIds.length == 0 || files.length != fileIds.length){
+            return;
+        }
+        int index = 0;
+        for (MultipartFile file : files) {
+            saveDocument(file,fileIds[index++],userId);
+        }
     }
 
     /**

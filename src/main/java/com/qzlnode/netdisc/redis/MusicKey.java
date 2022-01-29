@@ -7,7 +7,7 @@ public class MusicKey extends BasePrefix{
      * @param expireSeconds
      * @param prefix
      */
-    private MusicKey(int expireSeconds, String prefix) {
+    private MusicKey(long expireSeconds, String prefix) {
         super(expireSeconds, prefix);
     }
 

@@ -10,7 +10,7 @@ public class VideoCoverKey extends BasePrefix{
      * @param expireSeconds
      * @param prefix
      */
-    private VideoCoverKey(int expireSeconds, String prefix) {
+    private VideoCoverKey(long expireSeconds, String prefix) {
         super(expireSeconds, prefix);
     }
 

@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -16,6 +17,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @TableName("file")
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Document {
 
     @TableId(value = "file_id",type = IdType.AUTO)
@@ -24,6 +26,9 @@ public class Document {
     @TableId(value = "user_id",type = IdType.NONE)
     @JsonIgnore
     private Integer userId;
+
+    @TableField("file_origin_name")
+    private String fileOriginName;
 
     @TableField(value = "file_size")
     private long fileSize;

@@ -6,9 +6,9 @@ package com.qzlnode.netdisc.redis;
 public class UserKey extends BasePrefix{
 
     //两天时间
-    private static final int TOKEN_EXPIRE = 3600 * 24 * 2;
+    private static final long TOKEN_EXPIRE = 3600 * 24 * 2;
 
-    private UserKey(int expireSeconds, String prefix) {
+    private UserKey(long expireSeconds, String prefix) {
         super(expireSeconds, prefix);
     }
 

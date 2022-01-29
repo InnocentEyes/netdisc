@@ -6,14 +6,14 @@ package com.qzlnode.netdisc.redis;
 public class CountKey extends BasePrefix{
 
     //一天时间
-    private static final int COUNT_EXPIRE = 3600 * 60 * 1;
+    private static final long COUNT_EXPIRE = 3600 * 60 * 1;
 
     /**
      * 防止外部实例化修改
      * @param expireSeconds
      * @param prefix
      */
-    private CountKey(int expireSeconds, String prefix) {
+    private CountKey(long expireSeconds, String prefix) {
         super(expireSeconds, prefix);
     }
 
