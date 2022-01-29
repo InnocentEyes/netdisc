@@ -2,7 +2,11 @@ package com.qzlnode.netdisc.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.qzlnode.netdisc.pojo.Img;
+import org.csource.common.MyException;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Map;
 
@@ -13,27 +17,27 @@ public interface ImgService extends IService<Img> {
 
     /**
      *
-     * @param img
+     * @param file
      * @return
      */
-    Img imgUpload(Img img);
+    Img uploadImg(MultipartFile file) throws IOException, MyException, InvocationTargetException, IllegalAccessException;
 
     /**
      *
      * @param imgId
      * @return
      */
-    Img imgDownload(Integer imgId);
+    Img getImg(Integer imgId);
 
     /**
      *
      * @return
      */
-    List<Img> getUserImg();
+    List<Img> getAllImg();
 
     /**
      *
      * @return
      */
-    List<Img> saveMultImg(List<Img> imgs);
+    List<Img> multiUpload(MultipartFile[] files) throws IOException, MyException, InvocationTargetException, IllegalAccessException;
 }

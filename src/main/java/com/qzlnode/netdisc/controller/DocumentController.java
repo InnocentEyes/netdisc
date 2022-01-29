@@ -20,11 +20,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.print.Doc;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -136,15 +134,4 @@ public class DocumentController {
         return Result.success(documents,CodeMsg.SUCCESS);
     }
 
-    @ExceptionHandler({
-            IllegalAccessException.class,
-            InvocationTargetException.class
-    })
-    public Result handlerError(Exception exception, HttpServletRequest request){
-        String ip = Security.getIPAddress(request);
-        MessageHolder.clearData();
-        logger.error("handler {} error. ip address is {}.\n" +
-                "the reason is {}",request.getRequestURL(),ip,exception.getMessage());
-        return Result.error(CodeMsg.ERROR.fillArgs(exception.getMessage()));
-    }
 }

@@ -1,22 +1,18 @@
 package com.qzlnode.netdisc.controller;
 
-import com.qzlnode.netdisc.exception.RegisterErrorException;
 import com.qzlnode.netdisc.pojo.UserInfo;
 import com.qzlnode.netdisc.result.CodeMsg;
 import com.qzlnode.netdisc.result.Result;
 import com.qzlnode.netdisc.service.IndexService;
-import com.qzlnode.netdisc.util.MessageHolder;
 import com.qzlnode.netdisc.util.Security;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -72,14 +68,4 @@ public class IndexController {
         return Result.success(CodeMsg.SUCCESS);
     }
 
-    @ExceptionHandler({
-            RegisterErrorException.class,
-            NullPointerException.class
-    })
-    public Result handlerError(Exception ex, HttpServletRequest request){
-        MessageHolder.clearData();
-        logger.error("handler {} error.\n" +
-                "the reason is {}",request.getRequestURL(),ex.getMessage());
-        return Result.error(CodeMsg.ERROR.fillArgs(ex.getMessage()));
-    }
 }

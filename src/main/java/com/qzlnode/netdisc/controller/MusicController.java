@@ -11,7 +11,6 @@ import com.qzlnode.netdisc.service.AsyncService;
 import com.qzlnode.netdisc.service.MusicService;
 import com.qzlnode.netdisc.util.FileInfoHandler;
 import com.qzlnode.netdisc.util.MessageHolder;
-import com.qzlnode.netdisc.util.Security;
 import org.csource.common.MyException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +22,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -132,19 +130,4 @@ public class MusicController {
                 Result.error(CodeMsg.FILE_UPLOAD_ERROR);
     }
 
-    @ExceptionHandler({
-            NoSuchFileException.class,
-            IOException.class,
-            MyException.class,
-            InvocationTargetException.class,
-            IllegalAccessException.class,
-            UploadFileToLargeException.class
-    })
-    public Result handlerError(Exception exception, HttpServletRequest request){
-        String ip = Security.getIPAddress(request);
-        MessageHolder.clearData();
-        logger.error("handler {} error. ip address is {}.\n" +
-                "the reason is {}",request.getRequestURL(),ip,exception.getMessage());
-        return Result.error(CodeMsg.ERROR.fillArgs(exception.getMessage()));
-    }
 }

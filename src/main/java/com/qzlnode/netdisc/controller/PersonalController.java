@@ -1,6 +1,5 @@
 package com.qzlnode.netdisc.controller;
 
-import com.qzlnode.netdisc.exception.UpdateCountException;
 import com.qzlnode.netdisc.fastdfs.FastDFS;
 import com.qzlnode.netdisc.pojo.UserInfo;
 import com.qzlnode.netdisc.result.CodeMsg;
@@ -12,10 +11,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.Optional;
 
@@ -101,16 +102,4 @@ public class PersonalController {
         return Result.success(res[0] + "/" + res[1],CodeMsg.SUCCESS);
     }
 
-    @ExceptionHandler({
-            IOException.class,
-            MyException.class,
-            UpdateCountException.class,
-            NullPointerException.class
-    })
-    public Result handlerError(Exception ex, HttpServletRequest request){
-        MessageHolder.clearData();
-        logger.error("handler {} error.\n" +
-                "the reason is {}",request.getRequestURL(),ex.getMessage());
-        return Result.error(CodeMsg.ERROR.fillArgs(ex.getMessage()));
-    }
 }

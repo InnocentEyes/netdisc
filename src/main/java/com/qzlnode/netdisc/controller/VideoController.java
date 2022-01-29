@@ -24,7 +24,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -219,24 +218,5 @@ public class VideoController {
                 VideoKey.video,VideoCoverKey.videoCoverList,VideoCoverKey.videoCover
         );
         return Result.success(single,CodeMsg.SUCCESS);
-    }
-
-    /**
-     * 服务端异常
-     * @param exception
-     * @param request
-     * @return
-     */
-    @ExceptionHandler({
-            IOException.class,
-            MyException.class,
-            InvocationTargetException.class,
-            IllegalAccessException.class,
-    })
-    public Result handlerError(Exception exception, HttpServletRequest request){
-        MessageHolder.clearData();
-        logger.error("handler {} error.\n" +
-                "the reason is {}",request.getRequestURL(),exception.getMessage());
-        return Result.error(CodeMsg.ERROR.fillArgs(exception.getMessage()));
     }
 }

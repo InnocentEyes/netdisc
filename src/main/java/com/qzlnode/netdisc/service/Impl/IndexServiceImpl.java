@@ -2,8 +2,8 @@ package com.qzlnode.netdisc.service.Impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.qzlnode.netdisc.dao.UserDao;
+import com.qzlnode.netdisc.exception.HasPhoneException;
 import com.qzlnode.netdisc.exception.RegisterErrorException;
-import com.qzlnode.netdisc.exception.hasPhoneException;
 import com.qzlnode.netdisc.pojo.UserInfo;
 import com.qzlnode.netdisc.redis.RedisService;
 import com.qzlnode.netdisc.redis.UserKey;
@@ -42,7 +42,7 @@ public class IndexServiceImpl extends ServiceImpl<UserDao, UserInfo> implements 
     @Override
     public boolean registerService(UserInfo userInfo) {
         if(redisService.exists(UserKey.phone,userInfo.getAccount())){
-            throw new hasPhoneException("电话号码已存在");
+            throw new HasPhoneException("电话号码已存在");
         }
         userInfo.setPassword(BASE64.encode(userInfo.getPassword()));
         int target = userDao.insert(userInfo);
