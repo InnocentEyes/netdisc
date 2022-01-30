@@ -57,29 +57,13 @@ public class RedisService {
     }
 
     /**
-     * 将值设置到redis的list类型中去
+     * 将值设置到redis的Set类型中去
      * @param keyPrefix key的前缀
      * @param key key
-     * @param value value
+     * @param <T> values value
      * @param <T> 值的类型
      * @return {@code true} or {@code false}
      */
-    public  <T> boolean setList(KeyPrefix keyPrefix,String key,T value){
-        String realKey = keyPrefix.getPrefix() + key;
-        String str = beanToJson(value);
-        if(str == null || str.length() < 1){
-            return false;
-        }
-        try {
-            redis.opsForList().leftPush(realKey,str);
-            return true;
-        }catch (Exception ex){
-            logger.error("set key to redis error.\n" +
-                    "the reason is {}",ex.getMessage());
-            return false;
-        }
-    }
-
     public <T> boolean setSet(KeyPrefix keyPrefix, String key, T... values){
         String realKey = keyPrefix.getPrefix() + key;
         try {
