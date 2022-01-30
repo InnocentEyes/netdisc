@@ -12,24 +12,19 @@ public interface AsyncService {
 
     /**
      *
-     * @param key
-     * @param userId
      * @param file
-     * @param value
-     * @param keyPrefix
-     * @param <T>
+     * @param fileId
+     * @param userId
      */
-    <T> void saveVideo(String key, String userId, MultipartFile file, T value, KeyPrefix... keyPrefix);
+    void uploadVideo(MultipartFile file,Integer fileId,Integer userId);
 
     /**
      *
      * @param files
-     * @param values
+     * @param fileIds
      * @param userId
-     * @param keyPrefixes
-     * @param <T>
      */
-    <T> void saveBatchVideo(MultipartFile[] files, List<T> values, String userId, KeyPrefix... keyPrefixes);
+    void uploadBatchVideo(MultipartFile[] files,Integer[] fileIds,Integer userId);
 
     /**
      *

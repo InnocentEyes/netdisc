@@ -4,8 +4,6 @@ import com.qzlnode.netdisc.exception.UploadFileToLargeException;
 import com.qzlnode.netdisc.fastdfs.FastDFS;
 import com.qzlnode.netdisc.pojo.Video;
 import com.qzlnode.netdisc.pojo.VideoCover;
-import com.qzlnode.netdisc.redis.VideoCoverKey;
-import com.qzlnode.netdisc.redis.VideoKey;
 import com.qzlnode.netdisc.result.CodeMsg;
 import com.qzlnode.netdisc.result.Result;
 import com.qzlnode.netdisc.service.AsyncService;
@@ -74,25 +72,19 @@ public class VideoController {
             logger.info("无文件接受至服务端");
             return Result.error(CodeMsg.FILE_CANNOT_ACCPET);
         }
-        byte[] coverBytes = videoUtil.fetchFrame(file.getInputStream());
-        String[] uploadRes = fastDFS.upload(coverBytes,DEFAULT_IMG_TYPE);
-        if(uploadRes == null){
+        if(!fileInfoHandler.isSupport(file.getOriginalFilename(),Video.class)){
+            return Result.error(CodeMsg.VIDEO_TYPE_ERROR);
+        }
+        VideoCover videoCover = videoService.uploadVideoCover(file);
+        if(videoCover == null){
             return Result.error(CodeMsg.FILE_UPLOAD_ERROR);
         }
-        VideoCover cover = videoService.saveVideoCover(uploadRes,file.getOriginalFilename());
-        /**
-         * 这里调用异步任务,由于是异步任务所以无需在控制器方法内先处理文件，
-         * 直接将文件传入异步方法中处理。
-         */
-        String key = String.valueOf(cover.getVideoCoverId());
-        String userId = String.valueOf(MessageHolder.getUserId());
-        asyncService.saveVideo(
-                key,
-                userId,
-                file,
-                cover,
-                VideoKey.video, VideoCoverKey.videoCoverList, VideoCoverKey.videoCover);
-        return Result.success(cover,CodeMsg.SUCCESS);
+        Video video = videoService.handlerVideo(file,videoCover.getVideoCoverId());
+        if(video == null){
+            return Result.error(CodeMsg.FILE_UPLOAD_ERROR);
+        }
+        asyncService.uploadVideo(file,video.getVideoCoverId(),MessageHolder.getUserId());
+        return Result.success(videoCover,CodeMsg.SUCCESS);
     }
 
     /**
@@ -106,8 +98,8 @@ public class VideoController {
             logger.info("无参数接受至服务端");
             return Result.error(CodeMsg.BIND_ERROR);
         }
-        Video video = videoService.getVideoByCoverId(coverId);
-        return video == null ? Result.error(CodeMsg.UNFOUND_VIDEO) : Result.success(video,CodeMsg.SUCCESS);
+        Video video = videoService.getVideo(coverId);
+        return video == null ? Result.error(CodeMsg.UNWOUND_VIDEO) : Result.success(video,CodeMsg.SUCCESS);
     }
 
     /**
@@ -118,7 +110,7 @@ public class VideoController {
     public Result<List<VideoCover>> getUserVideo(){
         List<VideoCover> videoCoverList = videoService.getUserVideoList();
         return videoCoverList == null ?
-                Result.error(CodeMsg.UNFOUND_VIDEO) :
+                Result.error(CodeMsg.UNWOUND_VIDEO) :
                 Result.success(videoCoverList,CodeMsg.SUCCESS);
     }
 
@@ -127,12 +119,12 @@ public class VideoController {
      * @param coverId
      * @return
      */
-    @GetMapping("/get/{coverId}")
+    @GetMapping("/getDetail/{coverId}")
     public Result<VideoCover> getCoverWithVideo(@PathVariable(value = "coverId",required = false) Integer coverId){
         if(coverId == null){
             return Result.error(CodeMsg.BIND_ERROR);
         }
-        VideoCover cover = videoService.getCoverWithVideo(coverId);
+        VideoCover cover = videoService.getVideoDetail(coverId);
         return cover == null ? Result.error(CodeMsg.FILE_NO_EXIST) : Result.success(cover,CodeMsg.SUCCESS);
     }
 
@@ -146,7 +138,7 @@ public class VideoController {
     @GetMapping("/download/{videoId}")
     public ResponseEntity<byte[]> downloadVideo(@PathVariable("videoId") Integer videoId)
             throws MyException, IOException {
-        Video video = videoService.getVideoByCoverId(videoId);
+        Video video = videoService.getVideo(videoId);
         byte[] downloadRes = fastDFS.download(video.getGroupName(), video.getVideoRemotePath());
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
@@ -179,12 +171,6 @@ public class VideoController {
          * 启动异步
          */
         String userId = String.valueOf(MessageHolder.getUserId());
-        asyncService.saveBatchVideo(
-                files,
-                covers,
-                userId,
-                VideoKey.video,
-                VideoCoverKey.videoCoverList,VideoCoverKey.videoCover);
         return covers == null ? Result.error(CodeMsg.FILE_UPLOAD_ERROR) : Result.success(covers,CodeMsg.SUCCESS);
     }
 
@@ -199,24 +185,6 @@ public class VideoController {
         if(cover == null || video == null){
             return Result.error(CodeMsg.FILE_CANNOT_ACCPET);
         }
-        String[] uploadRes = fastDFS.upload(cover.getBytes(),cover.getOriginalFilename().split(".")[1]);
-        VideoCover single = fileInfoHandler.fileInfoToBean(cover,uploadRes,VideoCover.class);
-        single.setUserId(MessageHolder.getUserId());
-        single = videoService.saveVideoCover(single);
-        if(single == null){
-            return Result.error(CodeMsg.FILE_UPLOAD_ERROR);
-        }
-        /**
-         * 开启异步任务
-         */
-        String key = String.valueOf(single.getVideoCoverId());
-        String userId = String.valueOf(MessageHolder.getUserId());
-        asyncService.saveVideo(
-                key,
-                userId,
-                video,single,
-                VideoKey.video,VideoCoverKey.videoCoverList,VideoCoverKey.videoCover
-        );
-        return Result.success(single,CodeMsg.SUCCESS);
+        return null;
     }
 }

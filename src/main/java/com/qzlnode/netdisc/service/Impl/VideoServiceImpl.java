@@ -1,8 +1,10 @@
 package com.qzlnode.netdisc.service.Impl;
 
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.qzlnode.netdisc.dao.VideoCoverDao;
 import com.qzlnode.netdisc.dao.VideoDao;
+import com.qzlnode.netdisc.fastdfs.FastDFS;
 import com.qzlnode.netdisc.pojo.Video;
 import com.qzlnode.netdisc.pojo.VideoCover;
 import com.qzlnode.netdisc.redis.RedisService;
@@ -11,11 +13,15 @@ import com.qzlnode.netdisc.redis.VideoKey;
 import com.qzlnode.netdisc.service.VideoService;
 import com.qzlnode.netdisc.util.FileInfoHandler;
 import com.qzlnode.netdisc.util.MessageHolder;
+import com.qzlnode.netdisc.util.VideoUtil;
+import org.csource.common.MyException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.List;
@@ -33,13 +39,19 @@ public class VideoServiceImpl extends ServiceImpl<VideoCoverDao, VideoCover> imp
      */
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private static final String DEFAULT_IMG_TYPE = "png";
-
     @Autowired
     private VideoDao videoDao;
 
+    private static final String DEFAULT_COVER_TYPE = "png";
+
     @Autowired
     private VideoCoverDao videoCoverDao;
+
+    @Autowired
+    private FastDFS fastDFS;
+
+    @Autowired
+    private VideoUtil videoUtil;
 
     @Autowired
     private FileInfoHandler fileInfoHandler;
@@ -48,26 +60,33 @@ public class VideoServiceImpl extends ServiceImpl<VideoCoverDao, VideoCover> imp
     private RedisService redisService;
 
 
-
-    /**
-     * 可扩展
-     * @param coverPath
-     * @return
-     * @throws InvocationTargetException
-     * @throws IllegalAccessException
-     */
     @Override
-    public VideoCover saveVideoCover(String[] coverPath,String fileOriginName)
-            throws InvocationTargetException, IllegalAccessException {
-        VideoCover cover = fileInfoHandler.pathToBean(coverPath, VideoCover.class);
-        cover.setUserId(MessageHolder.getUserId());
-        cover.setVideoOriginName(fileOriginName);
-        cover.setVideoCoverType(DEFAULT_IMG_TYPE);
-        int res = videoCoverDao.insert(cover);
-        if(res != 1){
+    public VideoCover uploadVideoCover(MultipartFile file)
+            throws IOException, MyException, InvocationTargetException, IllegalAccessException {
+        byte[] cover = videoUtil.fetchFrame(file.getInputStream());
+        String[] uploadRes = fastDFS.upload(cover,DEFAULT_COVER_TYPE);
+        VideoCover videoCover = fileInfoHandler.pathToBean(uploadRes,VideoCover.class);
+        videoCover.setUserId(MessageHolder.getUserId());
+        videoCover.setVideoCoverType(DEFAULT_COVER_TYPE);
+        videoCover.setVideoOriginName(file.getOriginalFilename());
+        int result = videoCoverDao.insert(videoCover);
+        if(result != 1){
+            logger.info("insert video cover to db error");
             return null;
         }
-        return cover;
+        return videoCover;
+    }
+
+    @Override
+    public Video handlerVideo(MultipartFile file,Integer videoCoverId) throws InvocationTargetException, IllegalAccessException {
+        Video video = fileInfoHandler.fileInfoToBean(file,null,Video.class);
+        video.setVideoCoverId(videoCoverId);
+        int result = videoDao.insert(video);
+        if(result != 1){
+            logger.info("insert video to db error");
+            return null;
+        }
+        return video;
     }
 
     /**
@@ -76,12 +95,56 @@ public class VideoServiceImpl extends ServiceImpl<VideoCoverDao, VideoCover> imp
      * @return
      */
     @Override
-    public Video getVideoByCoverId(Integer coverId) {
-        String key = String.valueOf(coverId);
-        while (AsyncServiceImpl.target.get() != 0){
+    public Video getVideo(Integer coverId) {
+        Video video = redisService.get(VideoKey.video,String.valueOf(coverId),Video.class);
+        if(video != null){
+            return video;
+        }
+        String key = VideoKey.video.getPrefix() + MessageHolder.getUserId();
+        String value = VideoKey.video.getPrefix() + coverId;
+        while (AsyncServiceImpl.Cache.get(key).contains(value)){
             LockSupport.parkNanos(100);
         }
-        return redisService.get(VideoKey.video,key,Video.class);
+        if(AsyncServiceImpl.Cache.get(key).size() == 0){
+            AsyncServiceImpl.Cache.remove(key);
+        }
+        video = videoDao.selectOne(
+                Wrappers.lambdaQuery(Video.class)
+                        .eq(Video::getVideoCoverId,coverId)
+        );
+        if(video == null){
+            return null;
+        }
+        redisService.set(VideoKey.video,String.valueOf(coverId),video);
+        return video;
+    }
+
+    @Override
+    public VideoCover getVideoDetail(Integer coverId) {
+        VideoCover cover = redisService.get(VideoCoverKey.videoCover,String.valueOf(coverId),VideoCover.class);
+        if(cover != null && cover.getVideo() != null){
+            return cover;
+        }
+        String key = VideoKey.video.getPrefix() + MessageHolder.getUserId();
+        String value = VideoKey.video.getPrefix() + coverId;
+        while (AsyncServiceImpl.Cache.get(key).contains(value)){
+            LockSupport.parkNanos(100);
+        }
+        if(AsyncServiceImpl.Cache.get(key).size() == 0){
+            AsyncServiceImpl.Cache.remove(key);
+        }
+        if(cover == null){
+            cover = videoDao.queryCoverAndVideo(coverId, MessageHolder.getUserId());
+        }
+        if(cover.getVideo() == null) {
+            cover.setVideo(videoDao.selectOne(
+                    Wrappers.lambdaQuery(Video.class)
+                            .eq(Video::getVideoCoverId, coverId)
+            ));
+        }
+        redisService.set(VideoCoverKey.videoCover,String.valueOf(coverId),cover);
+        redisService.setSet(VideoCoverKey.videoCoverList,String.valueOf(MessageHolder.getUserId()),cover);
+        return cover;
     }
 
     @Override

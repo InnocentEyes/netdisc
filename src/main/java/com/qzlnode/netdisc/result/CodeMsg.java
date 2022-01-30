@@ -70,7 +70,9 @@ public class CodeMsg {
     /**
      * 视频端
      */
-    public static CodeMsg UNFOUND_VIDEO = new CodeMsg(500710,"视频资源获取失败");
+    public static CodeMsg UNWOUND_VIDEO = new CodeMsg(500710,"视频资源获取失败");
+
+    public static CodeMsg VIDEO_TYPE_ERROR = new CodeMsg(500711,"视频类型错误");
 
     /**
      * 音频端

@@ -3,7 +3,10 @@ package com.qzlnode.netdisc.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.qzlnode.netdisc.pojo.Video;
 import com.qzlnode.netdisc.pojo.VideoCover;
+import org.csource.common.MyException;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
@@ -12,12 +15,22 @@ import java.util.List;
  */
 public interface VideoService extends IService<VideoCover> {
 
+
     /**
      *
-     * @param coverPath
+     * @param file
      * @return
      */
-    VideoCover saveVideoCover(String[] coverPath,String fileOriginName)
+    VideoCover uploadVideoCover(MultipartFile file) throws IOException, MyException, InvocationTargetException, IllegalAccessException;
+
+    /**
+     *
+     * @param file
+     * @return
+     * @throws InvocationTargetException
+     * @throws IllegalAccessException
+     */
+    Video handlerVideo(MultipartFile file,Integer videoCoverId)
             throws InvocationTargetException, IllegalAccessException;
 
     /**
@@ -25,7 +38,14 @@ public interface VideoService extends IService<VideoCover> {
      * @param coverId
      * @return
      */
-    Video getVideoByCoverId(Integer coverId);
+    Video getVideo(Integer coverId);
+
+    /**
+     *
+     * @param coverId
+     * @return
+     */
+    VideoCover getVideoDetail(Integer coverId);
 
     /**
      *
