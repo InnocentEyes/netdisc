@@ -62,7 +62,7 @@ public class MusicController {
             return Result.error(CodeMsg.MUSIC_TYPE_ERROR);
         }
         Music music = musicService.saveMusic(file);
-        asyncService.saveMusic(file,music.getMusicId(),music.getUserId());
+        asyncService.uploadMusic(file,music.getMusicId(),music.getUserId());
         return Result.success(music,CodeMsg.SUCCESS);
     }
 
@@ -101,7 +101,7 @@ public class MusicController {
 
     @PostMapping("/multi/upload")
     public Result<List<Music>> multiUpload(@RequestParam(value = "musics",required = false) MultipartFile[] files)
-            throws IOException, MyException, InvocationTargetException, IllegalAccessException {
+            throws InvocationTargetException, IllegalAccessException {
         if(files == null){
             return Result.error(CodeMsg.FILE_CANNOT_ACCPET);
         }
@@ -115,7 +115,7 @@ public class MusicController {
         if(musicList == null){
             return Result.error(CodeMsg.FILE_UPLOAD_ERROR);
         }
-        asyncService.saveBatchMusic(
+        asyncService.uploadBatchMusic(
                 files,
                 musicList.stream().map(Music::getMusicId).toArray(Integer[]::new),
                 MessageHolder.getUserId()

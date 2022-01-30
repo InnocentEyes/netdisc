@@ -1,10 +1,13 @@
 package com.qzlnode.netdisc.interceptor;
 
 import com.qzlnode.netdisc.result.CodeMsg;
+import com.qzlnode.netdisc.service.AsyncService;
 import com.qzlnode.netdisc.util.Security;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -13,12 +16,17 @@ import javax.servlet.http.HttpServletResponse;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+@Component
 public class LoginInterceptor implements HandlerInterceptor {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
+    @Autowired
+    private AsyncService asyncService;
+
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+        asyncService.recordIpAddress(request);
         String token = request.getHeader("token");
         if(!Security.parseToken(token)){
             SimpleDateFormat ft = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");

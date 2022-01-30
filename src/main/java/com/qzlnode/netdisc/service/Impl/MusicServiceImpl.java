@@ -10,12 +10,15 @@ import com.qzlnode.netdisc.redis.RedisService;
 import com.qzlnode.netdisc.service.MusicService;
 import com.qzlnode.netdisc.util.FileInfoHandler;
 import com.qzlnode.netdisc.util.MessageHolder;
+import org.csource.common.MyException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -25,6 +28,12 @@ import java.util.concurrent.locks.LockSupport;
 /**
  * @author qzlzzz
  */
+@Transactional(rollbackFor = {
+        IllegalAccessException.class,
+        MyException.class,
+        IOException.class,
+        InvocationTargetException.class
+})
 @Service
 public class MusicServiceImpl extends ServiceImpl<MusicDao,Music> implements MusicService {
 
@@ -99,6 +108,7 @@ public class MusicServiceImpl extends ServiceImpl<MusicDao,Music> implements Mus
         while(AsyncServiceImpl.Cache.get(key).size() != 0){
             LockSupport.parkNanos(100);
         }
+        AsyncServiceImpl.Cache.remove(key);
         if(musics != null){
             return Arrays.asList(musics);
         }

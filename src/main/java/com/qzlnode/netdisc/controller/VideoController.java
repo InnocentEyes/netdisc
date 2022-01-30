@@ -25,6 +25,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -39,12 +40,7 @@ public class VideoController {
      */
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private static final String DEFAULT_IMG_TYPE = "png";
-
     private static final int MAX_UPLOAD_VIDEO = 3;
-
-    @Autowired
-    private VideoUtil videoUtil;
 
     @Autowired
     private VideoService videoService;
@@ -79,7 +75,7 @@ public class VideoController {
         if(videoCover == null){
             return Result.error(CodeMsg.FILE_UPLOAD_ERROR);
         }
-        Video video = videoService.handlerVideo(file,videoCover.getVideoCoverId());
+        Video video = videoService.handlerVideo(file,videoCover);
         if(video == null){
             return Result.error(CodeMsg.FILE_UPLOAD_ERROR);
         }
@@ -108,7 +104,7 @@ public class VideoController {
      */
     @RequestMapping("/user/get")
     public Result<List<VideoCover>> getUserVideo(){
-        List<VideoCover> videoCoverList = videoService.getUserVideoList();
+        List<VideoCover> videoCoverList = videoService.getBatchVideo();
         return videoCoverList == null ?
                 Result.error(CodeMsg.UNWOUND_VIDEO) :
                 Result.success(videoCoverList,CodeMsg.SUCCESS);
@@ -140,6 +136,9 @@ public class VideoController {
             throws MyException, IOException {
         Video video = videoService.getVideo(videoId);
         byte[] downloadRes = fastDFS.download(video.getGroupName(), video.getVideoRemotePath());
+        if(downloadRes == null){
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
         headers.setContentLength(video.getVideoSize());
@@ -157,21 +156,23 @@ public class VideoController {
             logger.info("上传文件过多");
             throw new UploadFileToLargeException("上传文件超出限制");
         }
-        List<VideoCover> covers = new ArrayList<>();
-        for (MultipartFile file : files) {
-            byte[] imgBytes = videoUtil.fetchFrame(file.getInputStream());
-            String[] uploadRes = fastDFS.upload(imgBytes, DEFAULT_IMG_TYPE);
-            VideoCover cover = fileInfoHandler.pathToBean(uploadRes,VideoCover.class);
-            cover.setVideoOriginName(file.getOriginalFilename());
-            cover.setUserId(MessageHolder.getUserId());
-            covers.add(cover);
+        files = Arrays.stream(files)
+                .filter(file -> fileInfoHandler.isSupport(file.getOriginalFilename(),Video.class))
+                .toArray(MultipartFile[]::new);
+        List<VideoCover> covers = videoService.uploadMultiVideoCover(files);
+        if(covers == null){
+            return Result.error(CodeMsg.FILE_UPLOAD_ERROR);
         }
-        covers = videoService.saveVideoCoverList(covers);
-        /**
-         * 启动异步
-         */
-        String userId = String.valueOf(MessageHolder.getUserId());
-        return covers == null ? Result.error(CodeMsg.FILE_UPLOAD_ERROR) : Result.success(covers,CodeMsg.SUCCESS);
+        List<Video> videos = videoService.handlerMultiVideo(files,covers);
+        if(videos == null){
+            return Result.error(CodeMsg.FILE_UPLOAD_ERROR);
+        }
+        asyncService.uploadBatchVideo(
+                files,
+                videos.stream().map(Video::getVideoCoverId).toArray(Integer[]::new),
+                MessageHolder.getUserId()
+        );
+        return Result.success(covers,CodeMsg.SUCCESS);
     }
 
     /**

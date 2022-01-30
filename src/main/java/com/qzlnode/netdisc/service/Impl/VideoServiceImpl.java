@@ -19,11 +19,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.locks.LockSupport;
 import java.util.stream.Collectors;
@@ -31,6 +34,12 @@ import java.util.stream.Collectors;
 /**
  * @author qzlzzz
  */
+@Transactional(rollbackFor = {
+        IllegalAccessException.class,
+        MyException.class,
+        IOException.class,
+        InvocationTargetException.class
+})
 @Service
 public class VideoServiceImpl extends ServiceImpl<VideoCoverDao, VideoCover> implements VideoService {
 
@@ -78,9 +87,9 @@ public class VideoServiceImpl extends ServiceImpl<VideoCoverDao, VideoCover> imp
     }
 
     @Override
-    public Video handlerVideo(MultipartFile file,Integer videoCoverId) throws InvocationTargetException, IllegalAccessException {
+    public Video handlerVideo(MultipartFile file,VideoCover videoCover) throws InvocationTargetException, IllegalAccessException {
         Video video = fileInfoHandler.fileInfoToBean(file,null,Video.class);
-        video.setVideoCoverId(videoCoverId);
+        video.setVideoCoverId(videoCover.getVideoCoverId());
         int result = videoDao.insert(video);
         if(result != 1){
             logger.info("insert video to db error");
@@ -148,40 +157,83 @@ public class VideoServiceImpl extends ServiceImpl<VideoCoverDao, VideoCover> imp
     }
 
     @Override
-    public List<VideoCover> getUserVideoList() {
-        String userId = String.valueOf(MessageHolder.getUserId());
-        while (AsyncServiceImpl.target.get() != 0){
+    public List<VideoCover> getBatchVideo() {
+        Integer userId = MessageHolder.getUserId();
+        VideoCover[] covers = null;
+        String key = VideoKey.video.getPrefix() + userId;
+        if(AsyncServiceImpl.Cache.get(key).size() == 0){
+            covers = redisService.get(VideoCoverKey.videoCoverList,String.valueOf(userId),VideoCover[].class);
+        }
+        while (AsyncServiceImpl.Cache.get(key).size() != 0){
             LockSupport.parkNanos(100);
         }
-        VideoCover[] videoCovers = redisService.get(VideoCoverKey.videoCoverList,userId,VideoCover[].class);
-        return Arrays.stream(videoCovers)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public List<VideoCover> saveVideoCoverList(List<VideoCover> covers) {
-        if(saveBatch(covers)){
-            return covers;
+        AsyncServiceImpl.Cache.remove(key);
+        if(covers != null){
+            return Arrays.asList(covers);
         }
-        return null;
-    }
-
-    @Override
-    public VideoCover saveVideoCover(VideoCover videoCover) {
-        int result = videoCoverDao.insert(videoCover);
-        if(result != 1){
+        List<VideoCover> coverList = videoCoverDao.selectList(
+                Wrappers.lambdaQuery(VideoCover.class)
+                        .eq(VideoCover::getUserId,userId)
+        );
+        if(coverList == null){
             return null;
         }
-        return videoCover;
+        coverList.forEach(element -> {
+            Video video = videoDao.selectOne(
+                    Wrappers.lambdaQuery(Video.class)
+                            .eq(Video::getVideoCoverId,element.getVideoCoverId()));
+            element.setVideo(video);
+        });
+        redisService.setSet(VideoCoverKey.videoCoverList,String.valueOf(userId),coverList.toArray(new VideoCover[0]));
+        return coverList;
     }
 
     @Override
-    public VideoCover getCoverWithVideo(Integer coverId) {
-        String key = String.valueOf(coverId);
-        while (AsyncServiceImpl.target.get() != 0){
-            LockSupport.parkNanos(100);
+    public List<VideoCover> uploadMultiVideoCover(MultipartFile[] files)
+            throws IOException, MyException, InvocationTargetException, IllegalAccessException {
+        if(files == null || files.length < 1){
+            return null;
         }
-        return redisService.get(VideoCoverKey.videoCover,key,VideoCover.class);
+        List<VideoCover> covers = new ArrayList<>();
+        for (MultipartFile file : files) {
+            byte[] coverBytes = videoUtil.fetchFrame(file.getInputStream());
+            String[] uploadRes = fastDFS.upload(coverBytes,DEFAULT_COVER_TYPE);
+            VideoCover cover = fileInfoHandler.pathToBean(uploadRes,VideoCover.class);
+            cover.setVideoOriginName(file.getOriginalFilename());
+            cover.setUserId(MessageHolder.getUserId());
+            covers.add(cover);
+        }
+        boolean isSave = saveBatch(covers);
+        if(!isSave){
+            return null;
+        }
+        return covers;
     }
+
+    @Override
+    public List<Video> handlerMultiVideo(MultipartFile[] files,List<VideoCover> videoCovers)
+            throws InvocationTargetException, IllegalAccessException {
+        if(files == null || files.length < 1){
+            return null;
+        }
+        if(videoCovers == null || videoCovers.size() == 0){
+            return null;
+        }
+        if(files.length != videoCovers.size()){
+            return null;
+        }
+        List<Video> videos = new ArrayList<>();
+        Iterator<VideoCover> coverIterator = videoCovers.iterator();
+        for (MultipartFile file : files) {
+            Video video = fileInfoHandler.fileInfoToBean(file,null,Video.class);
+            video.setVideoCoverId(coverIterator.next().getVideoCoverId());
+            videos.add(video);
+        }
+        videos.forEach(element -> {
+            videoDao.insert(element);
+        });
+        return videos;
+    }
+
 
 }

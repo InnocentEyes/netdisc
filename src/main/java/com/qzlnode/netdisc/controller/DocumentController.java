@@ -63,7 +63,7 @@ public class DocumentController {
         if(document == null){
             return Result.error(CodeMsg.FILE_UPLOAD_ERROR);
         }
-        asyncService.saveDocument(file,document.getFileId(),MessageHolder.getUserId());
+        asyncService.uploadDocument(file,document.getFileId(),MessageHolder.getUserId());
         return Result.success(document,CodeMsg.SUCCESS);
     }
 
@@ -118,7 +118,7 @@ public class DocumentController {
         if(documents == null){
             return Result.error(CodeMsg.FILE_UPLOAD_ERROR);
         }
-        asyncService.saveBatchDocument(
+        asyncService.uploadBatchDocument(
                 files,
                 documents.stream().map(Document::getFileId).toArray(Integer[]::new),
                 MessageHolder.getUserId());

@@ -8,31 +8,37 @@ import com.qzlnode.netdisc.fastdfs.FastDFS;
 import com.qzlnode.netdisc.pojo.Document;
 import com.qzlnode.netdisc.pojo.Music;
 import com.qzlnode.netdisc.pojo.Video;
-import com.qzlnode.netdisc.redis.*;
+import com.qzlnode.netdisc.redis.DocumentKey;
+import com.qzlnode.netdisc.redis.MusicKey;
+import com.qzlnode.netdisc.redis.VideoKey;
 import com.qzlnode.netdisc.service.AsyncService;
-import com.qzlnode.netdisc.util.FileInfoHandler;
+import com.qzlnode.netdisc.util.Security;
 import org.csource.common.MyException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author qzlzzz
  */
 @Async("asyncTaskExecutor")
+@Transactional(rollbackFor = {
+        RuntimeException.class,
+        MyException.class,
+        IOException.class
+})
 @Service
 public class AsyncServiceImpl implements AsyncService {
 
@@ -40,9 +46,6 @@ public class AsyncServiceImpl implements AsyncService {
      * 日志
      */
     private final Logger logger = LoggerFactory.getLogger(getClass());
-
-
-    public static AtomicInteger target = new AtomicInteger(0);
 
     public static Map<String, CopyOnWriteArraySet<String>> Cache = new ConcurrentHashMap<>();
 
@@ -101,7 +104,7 @@ public class AsyncServiceImpl implements AsyncService {
     }
 
     @Override
-    public void saveDocument(MultipartFile file, Integer fileId,Integer userId) {
+    public void uploadDocument(MultipartFile file, Integer fileId,Integer userId) {
         if(file == null || fileId == null || fileId < 1 || userId < 1){
             return;
         }
@@ -129,7 +132,7 @@ public class AsyncServiceImpl implements AsyncService {
     }
 
     @Override
-    public void saveBatchDocument(MultipartFile[] files,Integer[] fileIds,Integer userId){
+    public void uploadBatchDocument(MultipartFile[] files,Integer[] fileIds,Integer userId){
         if(files == null || fileIds == null){
             return;
         }
@@ -138,12 +141,12 @@ public class AsyncServiceImpl implements AsyncService {
         }
         int index = 0;
         for (MultipartFile file : files) {
-            saveDocument(file,fileIds[index++],userId);
+            uploadDocument(file,fileIds[index++],userId);
         }
     }
 
     @Override
-    public void saveMusic(MultipartFile file, Integer fileId, Integer userId){
+    public void uploadMusic(MultipartFile file, Integer fileId, Integer userId){
         if(file == null || fileId == null || fileId < 1 || userId == null || userId < 1){
             return;
         }
@@ -170,7 +173,7 @@ public class AsyncServiceImpl implements AsyncService {
     }
 
     @Override
-    public void saveBatchMusic(MultipartFile[] files, Integer[] fileIds, Integer userId) {
+    public void uploadBatchMusic(MultipartFile[] files, Integer[] fileIds, Integer userId) {
         if(files == null || fileIds == null){
             return;
         }
@@ -179,7 +182,14 @@ public class AsyncServiceImpl implements AsyncService {
         }
         int index = 0;
         for (MultipartFile file : files) {
-            saveMusic(file,fileIds[index++],userId);
+            uploadMusic(file,fileIds[index++],userId);
         }
+    }
+
+    @Override
+    public void recordIpAddress(HttpServletRequest request) {
+        String realIp = Security.getIPAddress(request);
+        SimpleDateFormat ft = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        logger.info("{} get the {} server at {}",realIp,request.getRequestURL(),ft.format(new Date()));
     }
 }

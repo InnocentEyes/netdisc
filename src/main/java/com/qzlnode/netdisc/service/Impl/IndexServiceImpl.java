@@ -23,7 +23,8 @@ import java.sql.SQLSyntaxErrorException;
 @Transactional(rollbackFor = {
         RuntimeException.class,
         NullPointerException.class,
-        SQLSyntaxErrorException.class
+        SQLSyntaxErrorException.class,
+        RegisterErrorException.class
 })
 @Service
 public class IndexServiceImpl extends ServiceImpl<UserDao, UserInfo> implements IndexService {

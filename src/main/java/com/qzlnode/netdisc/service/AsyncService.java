@@ -3,6 +3,7 @@ package com.qzlnode.netdisc.service;
 import com.qzlnode.netdisc.redis.KeyPrefix;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 /**
@@ -31,14 +32,14 @@ public interface AsyncService {
      * @param file
      * @param fileId
      */
-    void saveDocument(MultipartFile file,Integer fileId,Integer userId);
+    void uploadDocument(MultipartFile file,Integer fileId,Integer userId);
 
     /**
      *
      * @param files
      * @param fileIds
      */
-    void saveBatchDocument(MultipartFile[] files,Integer[] fileIds,Integer userId);
+    void uploadBatchDocument(MultipartFile[] files,Integer[] fileIds,Integer userId);
 
     /**
      *
@@ -46,7 +47,7 @@ public interface AsyncService {
      * @param fileId
      * @param userId
      */
-    void saveMusic(MultipartFile file,Integer fileId,Integer userId);
+    void uploadMusic(MultipartFile file,Integer fileId,Integer userId);
 
     /**
      *
@@ -54,6 +55,12 @@ public interface AsyncService {
      * @param fileIds
      * @param userId
      */
-    void saveBatchMusic(MultipartFile[] files,Integer[] fileIds,Integer userId);
+    void uploadBatchMusic(MultipartFile[] files,Integer[] fileIds,Integer userId);
+
+    /**
+     *
+     * @param request
+     */
+    void recordIpAddress(HttpServletRequest request);
 
 }

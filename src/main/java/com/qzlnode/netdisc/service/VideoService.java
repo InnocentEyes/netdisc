@@ -30,7 +30,7 @@ public interface VideoService extends IService<VideoCover> {
      * @throws InvocationTargetException
      * @throws IllegalAccessException
      */
-    Video handlerVideo(MultipartFile file,Integer videoCoverId)
+    Video handlerVideo(MultipartFile file,VideoCover videoCover)
             throws InvocationTargetException, IllegalAccessException;
 
     /**
@@ -51,25 +51,18 @@ public interface VideoService extends IService<VideoCover> {
      *
      * @return
      */
-    List<VideoCover> getUserVideoList();
+    List<VideoCover> getBatchVideo();
 
     /**
      *
      * @return
      */
-    List<VideoCover> saveVideoCoverList(List<VideoCover> covers);
+    List<VideoCover> uploadMultiVideoCover(MultipartFile[] files) throws IOException, MyException, InvocationTargetException, IllegalAccessException;
 
     /**
      *
-     * @param videoCover
+     * @param files
      * @return
      */
-    VideoCover saveVideoCover(VideoCover videoCover);
-
-    /**
-     *
-     * @param coverId
-     * @return
-     */
-    VideoCover getCoverWithVideo(Integer coverId);
+    List<Video> handlerMultiVideo(MultipartFile[] files,List<VideoCover> videoCovers) throws InvocationTargetException, IllegalAccessException;
 }
