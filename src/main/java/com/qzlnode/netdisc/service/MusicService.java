@@ -2,7 +2,9 @@ package com.qzlnode.netdisc.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.qzlnode.netdisc.pojo.Music;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
 /**
@@ -12,20 +14,27 @@ public interface MusicService extends IService<Music> {
 
     /**
      *
-     * @param music
+     * @param file
      * @return
      */
-    Music saveMusic(Music music);
+    Music saveMusic(MultipartFile file) throws InvocationTargetException, IllegalAccessException;
 
     /**
      *
      * @return
      */
-    Music getMusicByMusicId(Integer musicId);
+    Music getMusic(Integer musicId);
 
     /**
      *
      * @return
      */
-    List<Music> getUserMusic();
+    List<Music> getBatchMusic();
+
+    /**
+     *
+     * @param files
+     * @return
+     */
+    List<Music> saveBatchMusic(MultipartFile[] files) throws InvocationTargetException, IllegalAccessException;
 }

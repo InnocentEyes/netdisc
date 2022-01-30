@@ -25,6 +25,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -52,7 +53,7 @@ public class MusicController {
 
     @PostMapping("/single/upload")
     public Result<Music> singleUpload(@RequestParam(value = "music",required = false) MultipartFile file)
-            throws IOException, MyException, InvocationTargetException, IllegalAccessException {
+            throws InvocationTargetException, IllegalAccessException {
         if(file == null){
             logger.info("无文件接受至服务端");
             return Result.error(CodeMsg.FILE_CANNOT_ACCPET);
@@ -60,22 +61,15 @@ public class MusicController {
         if(!fileInfoHandler.isSupport(file.getOriginalFilename(),Music.class)){
             return Result.error(CodeMsg.MUSIC_TYPE_ERROR);
         }
-        String[] fileNameInfo = file.getOriginalFilename().split("\\.",2);
-        String[] uploadRes = fastDFS.upload(file.getBytes(),fileNameInfo[1]);
-        Music music = fileInfoHandler.fileInfoToBean(file,uploadRes, Music.class);
-        music = fileInfoHandler.handlerNameInfo(fileNameInfo[0], music);
-        music.setUserId(MessageHolder.getUserId());
-        music = musicService.saveMusic(music);
-        String userId = String.valueOf(MessageHolder.getUserId());
-        String key = String.valueOf(music.getMusicId());
-        asyncService.setDataToRedis(key,userId,music, MusicKey.music,MusicKey.musicList);
+        Music music = musicService.saveMusic(file);
+        asyncService.saveMusic(file,music.getMusicId(),music.getUserId());
         return Result.success(music,CodeMsg.SUCCESS);
     }
 
     @GetMapping("/download/{musicId}")
     public ResponseEntity<byte[]> download(@PathVariable(value = "musicId") Integer musicId)
             throws MyException, IOException {
-        Music music = musicService.getMusicByMusicId(musicId);
+        Music music = musicService.getMusic(musicId);
         if(music == null){
             throw new NoSuchFileException("没有此文件");
         }
@@ -92,13 +86,16 @@ public class MusicController {
         if(musicId == null){
             return Result.error(CodeMsg.BIND_ERROR);
         }
-        Music music = musicService.getMusicByMusicId(musicId);
+        if(musicId < 1){
+            return Result.error(CodeMsg.SERVER_ERROR);
+        }
+        Music music = musicService.getMusic(musicId);
         return music == null ? Result.error(CodeMsg.FILE_NO_EXIST) : Result.success(music,CodeMsg.SUCCESS);
     }
 
     @RequestMapping("/user/get")
     public Result<List<Music>> getUserMusic(){
-        List<Music> muscles = musicService.getUserMusic();
+        List<Music> muscles = musicService.getBatchMusic();
         return muscles == null ? Result.error(CodeMsg.FILE_NO_EXIST) : Result.success(muscles,CodeMsg.SUCCESS);
     }
 
@@ -111,23 +108,19 @@ public class MusicController {
         if(files.length > MAX_MUSIC_UPLOAD){
             throw new UploadFileToLargeException("上传文件超出限制");
         }
-        List<Music> musics = new ArrayList<>();
-        for (MultipartFile file : files) {
-            if(!fileInfoHandler.isSupport(file.getOriginalFilename(),Music.class)){
-                return Result.error(CodeMsg.MUSIC_TYPE_ERROR);
-            }
-            String[] fileNameInfo = file.getOriginalFilename().split("\\.",2);
-            String[] uploadRes = fastDFS.upload(file.getBytes(),fileNameInfo[1]);
-            Music music = fileInfoHandler.handlerNameInfo(
-                    fileNameInfo[0],
-                    fileInfoHandler.fileInfoToBean(file,uploadRes,Music.class)
-            );
-            music.setUserId(MessageHolder.getUserId());
-            musics.add(music);
+        files = Arrays.stream(files)
+                .filter(file -> fileInfoHandler.isSupport(file.getOriginalFilename(),Music.class))
+                .toArray(MultipartFile[]::new);
+        List<Music> musicList = musicService.saveBatchMusic(files);
+        if(musicList == null){
+            return Result.error(CodeMsg.FILE_UPLOAD_ERROR);
         }
-        return musicService.saveBatch(musics) ?
-                Result.success(musics,CodeMsg.SUCCESS) :
-                Result.error(CodeMsg.FILE_UPLOAD_ERROR);
+        asyncService.saveBatchMusic(
+                files,
+                musicList.stream().map(Music::getMusicId).toArray(Integer[]::new),
+                MessageHolder.getUserId()
+        );
+        return Result.success(musicList,CodeMsg.SUCCESS);
     }
 
 }

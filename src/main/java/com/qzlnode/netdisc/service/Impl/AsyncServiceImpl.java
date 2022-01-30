@@ -2,9 +2,11 @@ package com.qzlnode.netdisc.service.Impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.qzlnode.netdisc.dao.DocumentDao;
+import com.qzlnode.netdisc.dao.MusicDao;
 import com.qzlnode.netdisc.dao.VideoDao;
 import com.qzlnode.netdisc.fastdfs.FastDFS;
 import com.qzlnode.netdisc.pojo.Document;
+import com.qzlnode.netdisc.pojo.Music;
 import com.qzlnode.netdisc.pojo.Video;
 import com.qzlnode.netdisc.redis.*;
 import com.qzlnode.netdisc.service.AsyncService;
@@ -24,6 +26,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -42,7 +45,7 @@ public class AsyncServiceImpl implements AsyncService {
 
     public static AtomicInteger target = new AtomicInteger(0);
 
-    public static Map<Integer,Map<String,Object>> Cache = new ConcurrentHashMap<>();
+    public static Map<String, CopyOnWriteArraySet<String>> Cache = new ConcurrentHashMap<>();
 
     @Autowired
     private FastDFS dfs;
@@ -58,6 +61,9 @@ public class AsyncServiceImpl implements AsyncService {
 
     @Autowired
     private RedisService redisService;
+
+    @Autowired
+    private MusicDao musicDao;
 
 
     @Override
@@ -125,26 +131,28 @@ public class AsyncServiceImpl implements AsyncService {
 
     @Override
     public void saveDocument(MultipartFile file, Integer fileId,Integer userId) {
-        if(file == null || fileId == null || fileId == 0){
+        if(file == null || fileId == null || fileId < 1 || userId < 1){
             return;
         }
-        String key = DocumentKey.document.getPrefix() + userId + fileId;
-        Cache.computeIfAbsent(userId,k -> new ConcurrentHashMap<>()).computeIfAbsent(key,k -> new Object());
+        String key = DocumentKey.document.getPrefix() + userId;
+        String value = DocumentKey.document.getPrefix() + fileId;
+        Cache.computeIfAbsent(key,k -> new CopyOnWriteArraySet<>()).add(value);
         try {
             String[] uploadRes = dfs.upload(file.getBytes(),file.getOriginalFilename().split("\\.")[1]);
             Document document = fileInfoHandler.fileInfoToBean(file,uploadRes, Document.class);
             documentDao.update(
                     null,
                     Wrappers.lambdaUpdate(Document.class)
+                            .eq(Document::getUserId,userId)
                             .eq(Document::getFileId, fileId)
                             .set(Document::getGroupName, document.getGroupName())
                             .set(Document::getFileRemotePath, document.getFileRemotePath()));
         } catch (MyException | IOException | InvocationTargetException | IllegalAccessException e) {
-            e.printStackTrace();
+            logger.error("run the async method error.\n {}",e.getMessage());
         } catch (Exception e){
             logger.error("run the async method get a unexpected exception {} , the reason is {}",e,e.getMessage());
         }finally {
-            Cache.get(userId).remove(key);
+            Cache.get(key).remove(value);
         }
 
     }
@@ -154,7 +162,7 @@ public class AsyncServiceImpl implements AsyncService {
         if(files == null || fileIds == null){
             return;
         }
-        if(files.length == 0 || fileIds.length == 0 || files.length != fileIds.length){
+        if(fileIds.length == 0 || files.length != fileIds.length){
             return;
         }
         int index = 0;
@@ -163,31 +171,45 @@ public class AsyncServiceImpl implements AsyncService {
         }
     }
 
-    /**
-     * 第一个前缀必须是key-value类型 第二个前缀必须是key-list类型
-     * @param key
-     * @param userId
-     * @param value
-     * @param keyPrefixes
-     * @param <T>
-     */
     @Override
-    public <T> void setDataToRedis(String key, String userId, T value, KeyPrefix... keyPrefixes) {
-        int length = keyPrefixes.length;
-        if(length == 0 || length > 2){
+    public void saveMusic(MultipartFile file, Integer fileId, Integer userId){
+        if(file == null || fileId == null || fileId < 1 || userId == null || userId < 1){
             return;
         }
-        if(length == 1){
-            KeyPrefix keyPrefix = keyPrefixes[0];
-            if(keyPrefix instanceof VideoKey){
-                redisService.set(keyPrefix,key,value);
-            }
-            if(keyPrefix instanceof VideoCoverKey){
-                redisService.setList(keyPrefix,userId,value);
-            }
+        String key = MusicKey.music.getPrefix() + userId;
+        String value = MusicKey.music.getPrefix() + fileId;
+        Cache.computeIfAbsent(key,k -> new CopyOnWriteArraySet<>()).add(value);
+        try {
+            String[] uploadRes = dfs.upload(file.getBytes(),file.getOriginalFilename().split("\\.")[1]);
+            Music music = fileInfoHandler.fileInfoToBean(file,uploadRes, Music.class);
+            musicDao.update(
+                    null,
+                    Wrappers.lambdaUpdate(Music.class)
+                            .eq(Music::getUserId,userId)
+                            .eq(Music::getMusicId,fileId)
+                            .set(Music::getGroupName,music.getGroupName())
+                            .set(Music::getMusicRemotePath,music.getMusicRemotePath())
+            );
+        } catch (MyException | IOException | InvocationTargetException | IllegalAccessException e) {
+            logger.error("run the async method error.\n {}",e.getMessage());
+        } catch (Exception e){
+            logger.error("run the async method get a unexpected exception {} , the reason is {}",e,e.getMessage());
+        } finally {
+            Cache.get(key).remove(value);
+        }
+    }
+
+    @Override
+    public void saveBatchMusic(MultipartFile[] files, Integer[] fileIds, Integer userId) {
+        if(files == null || fileIds == null){
             return;
         }
-        redisService.set(keyPrefixes[0],key,value);
-        redisService.setList(keyPrefixes[1],userId,value);
+        if(fileIds.length == 0 || files.length != fileIds.length){
+            return;
+        }
+        int index = 0;
+        for (MultipartFile file : files) {
+            saveMusic(file,fileIds[index++],userId);
+        }
     }
 }

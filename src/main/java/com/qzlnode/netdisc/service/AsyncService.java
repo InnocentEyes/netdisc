@@ -14,16 +14,6 @@ public interface AsyncService {
      *
      * @param key
      * @param userId
-     * @param value
-     * @param keyPrefixes
-     * @param <T>
-     */
-    <T> void setDataToRedis(String key,String userId,T value,KeyPrefix... keyPrefixes);
-
-    /**
-     *
-     * @param key
-     * @param userId
      * @param file
      * @param value
      * @param keyPrefix
@@ -54,5 +44,21 @@ public interface AsyncService {
      * @param fileIds
      */
     void saveBatchDocument(MultipartFile[] files,Integer[] fileIds,Integer userId);
+
+    /**
+     *
+     * @param file
+     * @param fileId
+     * @param userId
+     */
+    void saveMusic(MultipartFile file,Integer fileId,Integer userId);
+
+    /**
+     *
+     * @param files
+     * @param fileIds
+     * @param userId
+     */
+    void saveBatchMusic(MultipartFile[] files,Integer[] fileIds,Integer userId);
 
 }

@@ -71,15 +71,16 @@ public class DocumentServiceImpl extends ServiceImpl<DocumentDao, Document> impl
     @Override
     public Document getDocument(Integer fileId) {
         Document document = redisService.get(DocumentKey.document,String.valueOf(fileId),Document.class);
-        if(document == null){
-            return null;
-        }
-        if(document.getGroupName() != null && document.getFileRemotePath() != null){
+        if(document != null) {
             return document;
         }
-        String key = DocumentKey.document.getPrefix() + MessageHolder.getUserId() + fileId;
-        while (AsyncServiceImpl.Cache.get(MessageHolder.getUserId()).get(key) != null){
+        String key = DocumentKey.document.getPrefix() + MessageHolder.getUserId();
+        String value = DocumentKey.document.getPrefix() + fileId;
+        while (AsyncServiceImpl.Cache.get(key).contains(value)){
             LockSupport.parkNanos(100);
+        }
+        if(AsyncServiceImpl.Cache.get(key).size() == 0){
+            AsyncServiceImpl.Cache.remove(key);
         }
         document = documentDao.selectOne(
                 Wrappers.lambdaQuery(Document.class)
@@ -108,8 +109,8 @@ public class DocumentServiceImpl extends ServiceImpl<DocumentDao, Document> impl
             document.setUserId(MessageHolder.getUserId());
             documents.add(document);
         }
-        boolean isUpdate = saveBatch(documents);
-        if(!isUpdate){
+        boolean isSave = saveBatch(documents);
+        if(!isSave){
             return null;
         }
         return documents;
@@ -119,20 +120,22 @@ public class DocumentServiceImpl extends ServiceImpl<DocumentDao, Document> impl
     public List<Document> getBatchDocument() {
         Integer userId = MessageHolder.getUserId();
         Document[] documents = null;
-        if(AsyncServiceImpl.Cache.size() == 0){
+        String key = DocumentKey.document.getPrefix() + userId;
+        if(AsyncServiceImpl.Cache.get(key).size() == 0){
             documents = redisService.get(DocumentKey.documentList,String.valueOf(userId),Document[].class);
         }
-        while(AsyncServiceImpl.Cache.size() != 0){
+        while(AsyncServiceImpl.Cache.get(key).size() != 0){
             LockSupport.parkNanos(100);
         }
+        AsyncServiceImpl.Cache.remove(key);
         if(documents != null){
-            return Arrays.stream(documents).collect(Collectors.toList());
+            return Arrays.asList(documents);
         }
         List<Document> documentList = documentDao.selectList(
                 Wrappers.lambdaQuery(Document.class)
                         .eq(Document::getUserId,userId)
         );
-        redisService.setSet(DocumentKey.documentList,String.valueOf(userId),documentList);
+        redisService.setSet(DocumentKey.documentList,String.valueOf(userId),documentList.toArray(new Document[0]));
         return documentList;
     }
 }
