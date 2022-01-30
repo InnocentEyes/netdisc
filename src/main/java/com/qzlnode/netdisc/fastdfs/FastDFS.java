@@ -22,7 +22,7 @@ public class FastDFS {
     static {
         try {
             System.out.println("----------loading FastDFS----------");
-            ClientGlobal.init("fastdfs.xml");
+            ClientGlobal.init("fastdfs.conf");
             TrackerClient trackerClient = new TrackerClient();
             TrackerServer trackerServer = trackerClient.getTrackerServer();
             StorageServer storageServer = trackerClient.getStoreStorage(trackerServer);
