@@ -13,4 +13,9 @@ public class ThreadTaskPoolConfig {
     public ThreadPoolExecutor asyncTaskExecutor(){
         return ThreadUtil.getIOTargetThreadPool();
     }
+
+    @Bean("loggerTaskExecutor")
+    public ThreadPoolExecutor loggerTaskExecutor(){
+        return ThreadUtil.getCPUTargetThreadPool();
+    }
 }

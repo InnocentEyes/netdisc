@@ -11,6 +11,7 @@ import com.qzlnode.netdisc.redis.RedisService;
 import com.qzlnode.netdisc.redis.VideoCoverKey;
 import com.qzlnode.netdisc.redis.VideoKey;
 import com.qzlnode.netdisc.service.VideoService;
+import com.qzlnode.netdisc.util.Cache;
 import com.qzlnode.netdisc.util.FileInfoHandler;
 import com.qzlnode.netdisc.util.MessageHolder;
 import com.qzlnode.netdisc.util.VideoUtil;
@@ -111,12 +112,10 @@ public class VideoServiceImpl extends ServiceImpl<VideoCoverDao, VideoCover> imp
         }
         String key = VideoKey.video.getPrefix() + MessageHolder.getUserId();
         String value = VideoKey.video.getPrefix() + coverId;
-        while (AsyncServiceImpl.Cache.get(key).contains(value)){
+        while (Cache.hasTask(key,value)){
             LockSupport.parkNanos(100);
         }
-        if(AsyncServiceImpl.Cache.get(key).size() == 0){
-            AsyncServiceImpl.Cache.remove(key);
-        }
+        Cache.removeAsyncKey(key);
         video = videoDao.selectOne(
                 Wrappers.lambdaQuery(Video.class)
                         .eq(Video::getVideoCoverId,coverId)
@@ -136,12 +135,10 @@ public class VideoServiceImpl extends ServiceImpl<VideoCoverDao, VideoCover> imp
         }
         String key = VideoKey.video.getPrefix() + MessageHolder.getUserId();
         String value = VideoKey.video.getPrefix() + coverId;
-        while (AsyncServiceImpl.Cache.get(key).contains(value)){
+        while (Cache.hasTask(key,value)){
             LockSupport.parkNanos(100);
         }
-        if(AsyncServiceImpl.Cache.get(key).size() == 0){
-            AsyncServiceImpl.Cache.remove(key);
-        }
+        Cache.removeAsyncKey(key);
         if(cover == null){
             cover = videoDao.queryCoverAndVideo(coverId, MessageHolder.getUserId());
         }
@@ -159,18 +156,14 @@ public class VideoServiceImpl extends ServiceImpl<VideoCoverDao, VideoCover> imp
     @Override
     public List<VideoCover> getBatchVideo() {
         Integer userId = MessageHolder.getUserId();
-        VideoCover[] covers = null;
         String key = VideoKey.video.getPrefix() + userId;
-        if(AsyncServiceImpl.Cache.get(key).size() == 0){
-            covers = redisService.get(VideoCoverKey.videoCoverList,String.valueOf(userId),VideoCover[].class);
+        if(!Cache.hasTask(key)){
+            return Arrays.asList(redisService.get(VideoCoverKey.videoCoverList,String.valueOf(userId),VideoCover[].class));
         }
-        while (AsyncServiceImpl.Cache.get(key).size() != 0){
+        while (Cache.hasTask(key)){
             LockSupport.parkNanos(100);
         }
-        AsyncServiceImpl.Cache.remove(key);
-        if(covers != null){
-            return Arrays.asList(covers);
-        }
+        Cache.removeAsyncKey(key);
         List<VideoCover> coverList = videoCoverDao.selectList(
                 Wrappers.lambdaQuery(VideoCover.class)
                         .eq(VideoCover::getUserId,userId)

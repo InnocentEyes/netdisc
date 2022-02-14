@@ -88,6 +88,24 @@ public class ThreadUtil {
         }
     }
 
+    private static class CpuIntenseTargetThreadPool{
+
+        private static final ThreadPoolExecutor EXECUTOR = new ThreadPoolExecutor(
+                CPU_COUNT,
+                CPU_COUNT,
+                KEEP_ALIVE_SECONDS,
+                TimeUnit.SECONDS,
+                new LinkedBlockingQueue<>(QUEUE_SIZE),
+                new FileUploadThreadFactory("loggerTask")
+        );
+
+        static {
+            Runtime.getRuntime().addShutdownHook(new Thread(()->{
+                shutdownThreadPoolGracefully(EXECUTOR);
+            },"CPU密集型任务"));
+        }
+    }
+
     static public class FileUploadThreadFactory implements ThreadFactory{
 
         private AtomicInteger threadNo = new AtomicInteger();
@@ -111,11 +129,19 @@ public class ThreadUtil {
     }
 
     /**
-     * 获取
+     * 获取IO线程池
      * @return
      */
     public static ThreadPoolExecutor getIOTargetThreadPool(){
         return IoIntenseTargetThreadPool.EXECUTOR;
+    }
+
+    /**
+     * 获取CPU线程池
+     * @return
+     */
+    public static ThreadPoolExecutor getCPUTargetThreadPool(){
+        return CpuIntenseTargetThreadPool.EXECUTOR;
     }
 
 

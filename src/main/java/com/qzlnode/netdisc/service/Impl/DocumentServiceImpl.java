@@ -8,6 +8,7 @@ import com.qzlnode.netdisc.pojo.Document;
 import com.qzlnode.netdisc.redis.DocumentKey;
 import com.qzlnode.netdisc.redis.RedisService;
 import com.qzlnode.netdisc.service.DocumentService;
+import com.qzlnode.netdisc.util.Cache;
 import com.qzlnode.netdisc.util.FileInfoHandler;
 import com.qzlnode.netdisc.util.MessageHolder;
 import org.csource.common.MyException;
@@ -75,12 +76,10 @@ public class DocumentServiceImpl extends ServiceImpl<DocumentDao, Document> impl
         }
         String key = DocumentKey.document.getPrefix() + MessageHolder.getUserId();
         String value = DocumentKey.document.getPrefix() + fileId;
-        while (AsyncServiceImpl.Cache.get(key).contains(value)){
+        while (Cache.hasTask(key,value)){
             LockSupport.parkNanos(100);
         }
-        if(AsyncServiceImpl.Cache.get(key).size() == 0){
-            AsyncServiceImpl.Cache.remove(key);
-        }
+        Cache.removeAsyncKey(key);
         document = documentDao.selectOne(
                 Wrappers.lambdaQuery(Document.class)
                         .eq(Document::getFileId,fileId)
@@ -118,18 +117,14 @@ public class DocumentServiceImpl extends ServiceImpl<DocumentDao, Document> impl
     @Override
     public List<Document> getBatchDocument() {
         Integer userId = MessageHolder.getUserId();
-        Document[] documents = null;
         String key = DocumentKey.document.getPrefix() + userId;
-        if(AsyncServiceImpl.Cache.get(key).size() == 0){
-            documents = redisService.get(DocumentKey.documentList,String.valueOf(userId),Document[].class);
+        if(!Cache.hasTask(key)){
+            return Arrays.asList(redisService.get(DocumentKey.documentList,String.valueOf(userId),Document[].class));
         }
-        while(AsyncServiceImpl.Cache.get(key).size() != 0){
+        while(Cache.hasTask(key)){
             LockSupport.parkNanos(100);
         }
-        AsyncServiceImpl.Cache.remove(key);
-        if(documents != null){
-            return Arrays.asList(documents);
-        }
+        Cache.removeAsyncKey(key);
         List<Document> documentList = documentDao.selectList(
                 Wrappers.lambdaQuery(Document.class)
                         .eq(Document::getUserId,userId)

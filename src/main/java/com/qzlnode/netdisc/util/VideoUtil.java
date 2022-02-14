@@ -19,7 +19,7 @@ import java.io.InputStream;
 public class VideoUtil {
 
     /**
-     * 这里截取视频文件的第一帧图片处理后作为视频封面
+     * @deprecated  这里截取视频文件的第一帧图片处理后作为视频封面
      * @param filestream
      * @return
      * @throws IOException

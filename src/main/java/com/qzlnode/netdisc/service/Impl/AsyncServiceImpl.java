@@ -12,7 +12,9 @@ import com.qzlnode.netdisc.redis.DocumentKey;
 import com.qzlnode.netdisc.redis.MusicKey;
 import com.qzlnode.netdisc.redis.VideoKey;
 import com.qzlnode.netdisc.service.AsyncService;
+import com.qzlnode.netdisc.util.Cache;
 import com.qzlnode.netdisc.util.Security;
+import com.qzlnode.netdisc.util.SpringUtil;
 import org.csource.common.MyException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,7 +35,6 @@ import java.util.concurrent.CopyOnWriteArraySet;
 /**
  * @author qzlzzz
  */
-@Async("asyncTaskExecutor")
 @Transactional(rollbackFor = {
         RuntimeException.class,
         MyException.class,
@@ -47,8 +48,6 @@ public class AsyncServiceImpl implements AsyncService {
      */
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    public static Map<String, CopyOnWriteArraySet<String>> Cache = new ConcurrentHashMap<>();
-
     @Autowired
     private FastDFS dfs;
 
@@ -61,7 +60,7 @@ public class AsyncServiceImpl implements AsyncService {
     @Autowired
     private MusicDao musicDao;
 
-
+    @Async("asyncTaskExecutor")
     @Override
     public void uploadVideo(MultipartFile file,Integer fileId,Integer userId){
         if(file == null || fileId == null || fileId < 1 || userId < 1){
@@ -69,7 +68,7 @@ public class AsyncServiceImpl implements AsyncService {
         }
         String key = VideoKey.video.getPrefix() + userId;
         String value = VideoKey.video.getPrefix() + fileId;
-        Cache.computeIfAbsent(key,k -> new CopyOnWriteArraySet<>()).add(value);
+        Cache.putAsync(key,value);
         try{
             String[] uploadRes = dfs.upload(file.getBytes(),file.getOriginalFilename().split("\\.")[1]);
             videoDao.update(
@@ -84,7 +83,7 @@ public class AsyncServiceImpl implements AsyncService {
         } catch (Exception e){
             logger.error("run the async method get a unexpected exception {} , the reason is {}",e,e.getMessage());
         }finally {
-            Cache.get(key).remove(value);
+            Cache.removeAsync(key,value);
         }
 
     }
@@ -98,11 +97,13 @@ public class AsyncServiceImpl implements AsyncService {
             return;
         }
         int index = 0;
+        AsyncService service = SpringUtil.getBean(AsyncService.class);
         for (MultipartFile file : files) {
-            uploadVideo(file,fileIds[index++],userId);
+            service.uploadVideo(file,fileIds[index++],userId);
         }
     }
 
+    @Async("asyncTaskExecutor")
     @Override
     public void uploadDocument(MultipartFile file, Integer fileId,Integer userId) {
         if(file == null || fileId == null || fileId < 1 || userId < 1){
@@ -110,7 +111,7 @@ public class AsyncServiceImpl implements AsyncService {
         }
         String key = DocumentKey.document.getPrefix() + userId;
         String value = DocumentKey.document.getPrefix() + fileId;
-        Cache.computeIfAbsent(key,k -> new CopyOnWriteArraySet<>()).add(value);
+        Cache.putAsync(key,value);
         try {
             String[] uploadRes = dfs.upload(file.getBytes(),file.getOriginalFilename().split("\\.")[1]);
             documentDao.update(
@@ -126,7 +127,7 @@ public class AsyncServiceImpl implements AsyncService {
         } catch (Exception e){
             logger.error("run the async method get a unexpected exception {} , the reason is {}",e,e.getMessage());
         }finally {
-            Cache.get(key).remove(value);
+            Cache.removeAsync(key,value);
         }
 
     }
@@ -140,11 +141,13 @@ public class AsyncServiceImpl implements AsyncService {
             return;
         }
         int index = 0;
+        AsyncService service = SpringUtil.getBean(AsyncService.class);
         for (MultipartFile file : files) {
-            uploadDocument(file,fileIds[index++],userId);
+            service.uploadDocument(file,fileIds[index++],userId);
         }
     }
 
+    @Async("asyncTaskExecutor")
     @Override
     public void uploadMusic(MultipartFile file, Integer fileId, Integer userId){
         if(file == null || fileId == null || fileId < 1 || userId == null || userId < 1){
@@ -152,7 +155,7 @@ public class AsyncServiceImpl implements AsyncService {
         }
         String key = MusicKey.music.getPrefix() + userId;
         String value = MusicKey.music.getPrefix() + fileId;
-        Cache.computeIfAbsent(key,k -> new CopyOnWriteArraySet<>()).add(value);
+        Cache.putAsync(key,value);
         try {
             String[] uploadRes = dfs.upload(file.getBytes(),file.getOriginalFilename().split("\\.")[1]);
             musicDao.update(
@@ -168,7 +171,7 @@ public class AsyncServiceImpl implements AsyncService {
         } catch (Exception e){
             logger.error("run the async method get a unexpected exception {} , the reason is {}",e,e.getMessage());
         } finally {
-            Cache.get(key).remove(value);
+            Cache.removeAsync(key,value);
         }
     }
 
@@ -181,11 +184,13 @@ public class AsyncServiceImpl implements AsyncService {
             return;
         }
         int index = 0;
+        AsyncService service = SpringUtil.getBean(AsyncService.class);
         for (MultipartFile file : files) {
-            uploadMusic(file,fileIds[index++],userId);
+            service.uploadMusic(file,fileIds[index++],userId);
         }
     }
 
+    @Async("loggerTaskExecutor")
     @Override
     public void recordIpAddress(HttpServletRequest request) {
         String realIp = Security.getIPAddress(request);

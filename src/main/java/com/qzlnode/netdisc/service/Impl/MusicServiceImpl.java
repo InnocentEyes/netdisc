@@ -8,6 +8,7 @@ import com.qzlnode.netdisc.redis.DocumentKey;
 import com.qzlnode.netdisc.redis.MusicKey;
 import com.qzlnode.netdisc.redis.RedisService;
 import com.qzlnode.netdisc.service.MusicService;
+import com.qzlnode.netdisc.util.Cache;
 import com.qzlnode.netdisc.util.FileInfoHandler;
 import com.qzlnode.netdisc.util.MessageHolder;
 import org.csource.common.MyException;
@@ -78,12 +79,10 @@ public class MusicServiceImpl extends ServiceImpl<MusicDao,Music> implements Mus
         }
         String key = MusicKey.music.getPrefix() + MessageHolder.getUserId();
         String value = MusicKey.music.getPrefix() + musicId;
-        while (AsyncServiceImpl.Cache.get(key).contains(value)){
+        while (Cache.hasTask(key,value)){
             LockSupport.parkNanos(100);
         }
-        if(AsyncServiceImpl.Cache.get(key).size() == 0){
-            AsyncServiceImpl.Cache.remove(key);
-        }
+        Cache.removeAsyncKey(key);
         music = musicDao.selectOne(
                 Wrappers.lambdaQuery(Music.class)
                         .eq(Music::getUserId,MessageHolder.getUserId())
@@ -100,18 +99,14 @@ public class MusicServiceImpl extends ServiceImpl<MusicDao,Music> implements Mus
     @Override
     public List<Music> getBatchMusic() {
         Integer userId = MessageHolder.getUserId();
-        Music[] musics = null;
         String key = DocumentKey.document.getPrefix() + userId;
-        if(AsyncServiceImpl.Cache.get(key).size() == 0){
-            musics = redisService.get(DocumentKey.documentList,String.valueOf(userId),Music[].class);
+        if(!Cache.hasTask(key)){
+            return Arrays.asList(redisService.get(DocumentKey.documentList,String.valueOf(userId),Music[].class));
         }
-        while(AsyncServiceImpl.Cache.get(key).size() != 0){
+        while(Cache.hasTask(key)){
             LockSupport.parkNanos(100);
         }
-        AsyncServiceImpl.Cache.remove(key);
-        if(musics != null){
-            return Arrays.asList(musics);
-        }
+        Cache.removeAsyncKey(key);
         List<Music> musicList = musicDao.selectList(
                 Wrappers.lambdaQuery(Music.class)
                         .eq(Music::getUserId,userId)

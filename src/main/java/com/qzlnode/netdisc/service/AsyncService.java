@@ -1,10 +1,8 @@
 package com.qzlnode.netdisc.service;
 
-import com.qzlnode.netdisc.redis.KeyPrefix;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.List;
 
 /**
  * @author qzlzzz
