@@ -119,7 +119,7 @@ public class DocumentServiceImpl extends ServiceImpl<DocumentDao, Document> impl
         Integer userId = MessageHolder.getUserId();
         String key = DocumentKey.document.getPrefix() + userId;
         if(!Cache.hasTask(key)){
-            return Arrays.asList(redisService.get(DocumentKey.documentList,String.valueOf(userId),Document[].class));
+            return redisService.getList(DocumentKey.documentList,String.valueOf(userId),Document.class);
         }
         while(Cache.hasTask(key)){
             LockSupport.parkNanos(100);
@@ -129,7 +129,7 @@ public class DocumentServiceImpl extends ServiceImpl<DocumentDao, Document> impl
                 Wrappers.lambdaQuery(Document.class)
                         .eq(Document::getUserId,userId)
         );
-        redisService.setSet(DocumentKey.documentList,String.valueOf(userId),documentList.toArray(new Document[0]));
+        redisService.setSet(DocumentKey.documentList,String.valueOf(userId),documentList);
         return documentList;
     }
 }

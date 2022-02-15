@@ -158,7 +158,7 @@ public class VideoServiceImpl extends ServiceImpl<VideoCoverDao, VideoCover> imp
         Integer userId = MessageHolder.getUserId();
         String key = VideoKey.video.getPrefix() + userId;
         if(!Cache.hasTask(key)){
-            return Arrays.asList(redisService.get(VideoCoverKey.videoCoverList,String.valueOf(userId),VideoCover[].class));
+            return redisService.getList(VideoCoverKey.videoCoverList,String.valueOf(userId),VideoCover.class);
         }
         while (Cache.hasTask(key)){
             LockSupport.parkNanos(100);
@@ -177,7 +177,7 @@ public class VideoServiceImpl extends ServiceImpl<VideoCoverDao, VideoCover> imp
                             .eq(Video::getVideoCoverId,element.getVideoCoverId()));
             element.setVideo(video);
         });
-        redisService.setSet(VideoCoverKey.videoCoverList,String.valueOf(userId),coverList.toArray(new VideoCover[0]));
+        redisService.setSet(VideoCoverKey.videoCoverList,String.valueOf(userId),coverList);
         return coverList;
     }
 

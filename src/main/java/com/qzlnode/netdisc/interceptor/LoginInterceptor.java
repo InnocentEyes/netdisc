@@ -2,6 +2,7 @@ package com.qzlnode.netdisc.interceptor;
 
 import com.qzlnode.netdisc.result.CodeMsg;
 import com.qzlnode.netdisc.service.AsyncService;
+import com.qzlnode.netdisc.util.MessageHolder;
 import com.qzlnode.netdisc.util.Security;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,8 +14,6 @@ import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 @Component
 public class LoginInterceptor implements HandlerInterceptor {
@@ -26,15 +25,14 @@ public class LoginInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        asyncService.recordIpAddress(request);
         String token = request.getHeader("token");
         if(!Security.parseToken(token)){
-            SimpleDateFormat ft = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            logger.error(request.getRequestURL()+" was intercepted. {}",ft.format(new Date()));
+            asyncService.recordIpAddress(request);
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
             response.getOutputStream().print(CodeMsg.MESSAGE_ERROR.toString());
             return false;
         }
+        asyncService.recordUserAction(request, MessageHolder.getUserId());
         return true;
     }
 

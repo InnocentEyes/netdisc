@@ -2,6 +2,7 @@ package com.qzlnode.netdisc.service.Impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.qzlnode.netdisc.dao.ChatMsgDao;
 import com.qzlnode.netdisc.dao.UserDao;
 import com.qzlnode.netdisc.exception.UpdateCountException;
 import com.qzlnode.netdisc.fastdfs.FastDFS;
@@ -55,6 +56,12 @@ public class PersonalServiceImpl extends ServiceImpl<UserDao,UserInfo> implement
      */
     @Autowired
     private FastDFS fastDFS;
+
+    /**
+     *
+     */
+    @Autowired
+    private ChatMsgDao chatMsgDao;
 
     /**
      *

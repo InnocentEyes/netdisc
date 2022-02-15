@@ -96,9 +96,9 @@ public class ImgServiceImpl extends ServiceImpl<ImgDao, Img> implements ImgServi
      */
     @Override
     public List<Img> getAllImg(){
-        Img[] images = redisService.get(ImgKey.imgList,String.valueOf(MessageHolder.getUserId()),Img[].class);
-        if(images != null || images.length != 0){
-            return Arrays.asList(images);
+        List<Img> images = redisService.getList(ImgKey.imgList,String.valueOf(MessageHolder.getUserId()),Img.class);
+        if(images != null || images.size() != 0){
+            return images;
         }
         List<Img> imgList = imgDao.selectList(
                 Wrappers.lambdaQuery(Img.class)

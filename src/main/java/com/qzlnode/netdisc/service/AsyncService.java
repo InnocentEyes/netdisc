@@ -61,4 +61,11 @@ public interface AsyncService {
      */
     void recordIpAddress(HttpServletRequest request);
 
+    /**
+     *
+     * @param request
+     * @param userId
+     */
+    void recordUserAction(HttpServletRequest request,Integer userId);
+
 }

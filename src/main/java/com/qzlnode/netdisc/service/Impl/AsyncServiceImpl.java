@@ -3,10 +3,12 @@ package com.qzlnode.netdisc.service.Impl;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.qzlnode.netdisc.dao.DocumentDao;
 import com.qzlnode.netdisc.dao.MusicDao;
+import com.qzlnode.netdisc.dao.UserDao;
 import com.qzlnode.netdisc.dao.VideoDao;
 import com.qzlnode.netdisc.fastdfs.FastDFS;
 import com.qzlnode.netdisc.pojo.Document;
 import com.qzlnode.netdisc.pojo.Music;
+import com.qzlnode.netdisc.pojo.UserInfo;
 import com.qzlnode.netdisc.pojo.Video;
 import com.qzlnode.netdisc.redis.DocumentKey;
 import com.qzlnode.netdisc.redis.MusicKey;
@@ -28,9 +30,6 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
  * @author qzlzzz
@@ -60,133 +59,136 @@ public class AsyncServiceImpl implements AsyncService {
     @Autowired
     private MusicDao musicDao;
 
+    @Autowired
+    private UserDao userDao;
+
     @Async("asyncTaskExecutor")
     @Override
-    public void uploadVideo(MultipartFile file,Integer fileId,Integer userId){
-        if(file == null || fileId == null || fileId < 1 || userId < 1){
+    public void uploadVideo(MultipartFile file, Integer fileId, Integer userId) {
+        if (file == null || fileId == null || fileId < 1 || userId < 1) {
             return;
         }
         String key = VideoKey.video.getPrefix() + userId;
         String value = VideoKey.video.getPrefix() + fileId;
-        Cache.putAsync(key,value);
-        try{
-            String[] uploadRes = dfs.upload(file.getBytes(),file.getOriginalFilename().split("\\.")[1]);
+        Cache.putAsync(key, value);
+        try {
+            String[] uploadRes = dfs.upload(file.getBytes(), file.getOriginalFilename().split("\\.")[1]);
             videoDao.update(
                     null,
                     Wrappers.lambdaUpdate(Video.class)
-                            .eq(Video::getVideoId,fileId)
-                            .set(Video::getGroupName,uploadRes[0])
-                            .set(Video::getVideoRemotePath,uploadRes[1])
+                            .eq(Video::getVideoId, fileId)
+                            .set(Video::getGroupName, uploadRes[0])
+                            .set(Video::getVideoRemotePath, uploadRes[1])
             );
         } catch (MyException | IOException e) {
-            logger.error("run the async method error.\n {}",e.getMessage());
-        } catch (Exception e){
-            logger.error("run the async method get a unexpected exception {} , the reason is {}",e,e.getMessage());
-        }finally {
-            Cache.removeAsync(key,value);
+            logger.error("run the async method error.\n {}", e.getMessage());
+        } catch (Exception e) {
+            logger.error("run the async method get a unexpected exception {} , the reason is {}", e, e.getMessage());
+        } finally {
+            Cache.removeAsync(key, value);
         }
 
     }
 
     @Override
-    public void uploadBatchVideo(MultipartFile[] files,Integer[] fileIds,Integer userId){
-        if(files == null || fileIds == null){
+    public void uploadBatchVideo(MultipartFile[] files, Integer[] fileIds, Integer userId) {
+        if (files == null || fileIds == null) {
             return;
         }
-        if(fileIds.length == 0 || files.length != fileIds.length){
+        if (fileIds.length == 0 || files.length != fileIds.length) {
             return;
         }
         int index = 0;
         AsyncService service = SpringUtil.getBean(AsyncService.class);
         for (MultipartFile file : files) {
-            service.uploadVideo(file,fileIds[index++],userId);
+            service.uploadVideo(file, fileIds[index++], userId);
         }
     }
 
     @Async("asyncTaskExecutor")
     @Override
-    public void uploadDocument(MultipartFile file, Integer fileId,Integer userId) {
-        if(file == null || fileId == null || fileId < 1 || userId < 1){
+    public void uploadDocument(MultipartFile file, Integer fileId, Integer userId) {
+        if (file == null || fileId == null || fileId < 1 || userId < 1) {
             return;
         }
         String key = DocumentKey.document.getPrefix() + userId;
         String value = DocumentKey.document.getPrefix() + fileId;
-        Cache.putAsync(key,value);
+        Cache.putAsync(key, value);
         try {
-            String[] uploadRes = dfs.upload(file.getBytes(),file.getOriginalFilename().split("\\.")[1]);
+            String[] uploadRes = dfs.upload(file.getBytes(), file.getOriginalFilename().split("\\.")[1]);
             documentDao.update(
                     null,
                     Wrappers.lambdaUpdate(Document.class)
-                            .eq(Document::getUserId,userId)
+                            .eq(Document::getUserId, userId)
                             .eq(Document::getFileId, fileId)
                             .set(Document::getGroupName, uploadRes[0])
                             .set(Document::getFileRemotePath, uploadRes[1])
             );
         } catch (MyException | IOException e) {
-            logger.error("run the async method error.\n {}",e.getMessage());
-        } catch (Exception e){
-            logger.error("run the async method get a unexpected exception {} , the reason is {}",e,e.getMessage());
-        }finally {
-            Cache.removeAsync(key,value);
+            logger.error("run the async method error.\n {}", e.getMessage());
+        } catch (Exception e) {
+            logger.error("run the async method get a unexpected exception {} , the reason is {}", e, e.getMessage());
+        } finally {
+            Cache.removeAsync(key, value);
         }
 
     }
 
     @Override
-    public void uploadBatchDocument(MultipartFile[] files,Integer[] fileIds,Integer userId){
-        if(files == null || fileIds == null){
+    public void uploadBatchDocument(MultipartFile[] files, Integer[] fileIds, Integer userId) {
+        if (files == null || fileIds == null) {
             return;
         }
-        if(fileIds.length == 0 || files.length != fileIds.length){
+        if (fileIds.length == 0 || files.length != fileIds.length) {
             return;
         }
         int index = 0;
         AsyncService service = SpringUtil.getBean(AsyncService.class);
         for (MultipartFile file : files) {
-            service.uploadDocument(file,fileIds[index++],userId);
+            service.uploadDocument(file, fileIds[index++], userId);
         }
     }
 
     @Async("asyncTaskExecutor")
     @Override
-    public void uploadMusic(MultipartFile file, Integer fileId, Integer userId){
-        if(file == null || fileId == null || fileId < 1 || userId == null || userId < 1){
+    public void uploadMusic(MultipartFile file, Integer fileId, Integer userId) {
+        if (file == null || fileId == null || fileId < 1 || userId == null || userId < 1) {
             return;
         }
         String key = MusicKey.music.getPrefix() + userId;
         String value = MusicKey.music.getPrefix() + fileId;
-        Cache.putAsync(key,value);
+        Cache.putAsync(key, value);
         try {
-            String[] uploadRes = dfs.upload(file.getBytes(),file.getOriginalFilename().split("\\.")[1]);
+            String[] uploadRes = dfs.upload(file.getBytes(), file.getOriginalFilename().split("\\.")[1]);
             musicDao.update(
                     null,
                     Wrappers.lambdaUpdate(Music.class)
-                            .eq(Music::getUserId,userId)
-                            .eq(Music::getMusicId,fileId)
-                            .set(Music::getGroupName,uploadRes[0])
-                            .set(Music::getMusicRemotePath,uploadRes[1])
+                            .eq(Music::getUserId, userId)
+                            .eq(Music::getMusicId, fileId)
+                            .set(Music::getGroupName, uploadRes[0])
+                            .set(Music::getMusicRemotePath, uploadRes[1])
             );
         } catch (MyException | IOException e) {
-            logger.error("run the async method error.\n {}",e.getMessage());
-        } catch (Exception e){
-            logger.error("run the async method get a unexpected exception {} , the reason is {}",e,e.getMessage());
+            logger.error("run the async method error.\n {}", e.getMessage());
+        } catch (Exception e) {
+            logger.error("run the async method get a unexpected exception {} , the reason is {}", e, e.getMessage());
         } finally {
-            Cache.removeAsync(key,value);
+            Cache.removeAsync(key, value);
         }
     }
 
     @Override
     public void uploadBatchMusic(MultipartFile[] files, Integer[] fileIds, Integer userId) {
-        if(files == null || fileIds == null){
+        if (files == null || fileIds == null) {
             return;
         }
-        if(fileIds.length == 0 || files.length != fileIds.length){
+        if (fileIds.length == 0 || files.length != fileIds.length) {
             return;
         }
         int index = 0;
         AsyncService service = SpringUtil.getBean(AsyncService.class);
         for (MultipartFile file : files) {
-            service.uploadMusic(file,fileIds[index++],userId);
+            service.uploadMusic(file, fileIds[index++], userId);
         }
     }
 
@@ -195,6 +197,21 @@ public class AsyncServiceImpl implements AsyncService {
     public void recordIpAddress(HttpServletRequest request) {
         String realIp = Security.getIPAddress(request);
         SimpleDateFormat ft = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        logger.info("{} get the {} server at {}",realIp,request.getRequestURL(),ft.format(new Date()));
+        logger.info("{} get the {} server at {}", realIp, request.getRequestURL(), ft.format(new Date()));
+    }
+
+    @Async("loggerTaskExecutor")
+    @Override
+    public void recordUserAction(HttpServletRequest request, Integer userId) {
+        UserInfo userInfo = userDao.selectById(userId);
+        String realIp = Security.getIPAddress(request);
+        SimpleDateFormat ft = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        logger.info("user id {} trueNamed {} phoned {} get the {} server in {} at {}",
+                userInfo.getId(),
+                userInfo.getRealName(),
+                userInfo.getAccount(),
+                request.getRequestURL(),
+                ft.format(new Date()),
+                realIp);
     }
 }

@@ -1,6 +1,7 @@
 package com.qzlnode.netdisc.util;
 
-import java.nio.channels.Channel;
+import io.netty.channel.Channel;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -87,5 +88,9 @@ public class Cache {
      */
     public static void removeChannel(Integer userId){
         channelCache.remove(userId);
+    }
+
+    public static void removeAllChannel(){
+        channelCache.clear();
     }
 }

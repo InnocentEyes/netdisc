@@ -101,7 +101,7 @@ public class MusicServiceImpl extends ServiceImpl<MusicDao,Music> implements Mus
         Integer userId = MessageHolder.getUserId();
         String key = DocumentKey.document.getPrefix() + userId;
         if(!Cache.hasTask(key)){
-            return Arrays.asList(redisService.get(DocumentKey.documentList,String.valueOf(userId),Music[].class));
+            return redisService.getList(DocumentKey.documentList,String.valueOf(userId),Music.class);
         }
         while(Cache.hasTask(key)){
             LockSupport.parkNanos(100);
@@ -114,7 +114,7 @@ public class MusicServiceImpl extends ServiceImpl<MusicDao,Music> implements Mus
         if(musicList == null || musicList.size() == 0){
             return null;
         }
-        redisService.setSet(DocumentKey.documentList,String.valueOf(userId),musicList.toArray(new Music[0]));
+        redisService.setSet(DocumentKey.documentList,String.valueOf(userId),musicList);
         return musicList;
     }
 

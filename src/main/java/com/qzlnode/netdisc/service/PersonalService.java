@@ -1,6 +1,7 @@
 package com.qzlnode.netdisc.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.qzlnode.netdisc.pojo.ChatMsg;
 import com.qzlnode.netdisc.pojo.UserInfo;
 import org.csource.common.MyException;
 
@@ -38,4 +39,7 @@ public interface PersonalService extends IService<UserInfo> {
      * @return
      */
     boolean saveHeader(String[] imgMsg,Integer userId);
+
+
+    void saveChatMsg(ChatMsg chatMsg);
 }

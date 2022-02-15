@@ -35,7 +35,7 @@ public class Security {
 
     private static final String NGINX = "X-Real-IP";
 
-    private static final String OHTER =  "HTTP_CLIENT_IP";
+    private static final String OTHER =  "HTTP_CLIENT_IP";
 
     private static final String UNKNOWN = "unknown";
     /**
@@ -100,7 +100,7 @@ public class Security {
             ipAddresses = request.getHeader(WEBLOGIC);
         }
         if(ipAddresses == null || ipAddresses.length() == 0 || UNKNOWN.equalsIgnoreCase(ipAddresses)){
-            ipAddresses = request.getHeader(OHTER);
+            ipAddresses = request.getHeader(OTHER);
         }
         if(ipAddresses == null || ipAddresses.length() == 0 || UNKNOWN.equalsIgnoreCase(ipAddresses)){
             ipAddresses = request.getHeader(NGINX);
