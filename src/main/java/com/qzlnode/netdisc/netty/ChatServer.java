@@ -40,8 +40,6 @@ public class ChatServer {
             channel.close();
         }
         channelGroup.close();
-        group.shutdownGracefully();
-        Cache.removeAllChannel();
     }
 
     public void start(InetSocketAddress address) throws InterruptedException {

@@ -6,7 +6,7 @@ import com.qzlnode.netdisc.exception.HasPhoneException;
 import com.qzlnode.netdisc.exception.RegisterErrorException;
 import com.qzlnode.netdisc.pojo.UserInfo;
 import com.qzlnode.netdisc.redis.RedisService;
-import com.qzlnode.netdisc.redis.UserKey;
+import com.qzlnode.netdisc.redis.key.UserKey;
 import com.qzlnode.netdisc.service.IndexService;
 import com.qzlnode.netdisc.util.BASE64;
 import org.slf4j.Logger;

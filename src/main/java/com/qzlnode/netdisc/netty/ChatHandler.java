@@ -1,7 +1,10 @@
 package com.qzlnode.netdisc.netty;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.qzlnode.netdisc.util.Cache;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.qzlnode.netdisc.dao.ChatMsgDao;
+import com.qzlnode.netdisc.pojo.ChatMsg;
+import com.qzlnode.netdisc.service.PersonalService;
+import com.qzlnode.netdisc.util.JsonUtil;
 import com.qzlnode.netdisc.util.SpringUtil;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
@@ -9,7 +12,6 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.group.ChannelGroup;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
-import io.netty.handler.codec.http.websocketx.WebSocketClientProtocolHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,35 +27,23 @@ public class ChatHandler extends SimpleChannelInboundHandler<TextWebSocketFrame>
      */
     private final Logger logger = LoggerFactory.getLogger(ChatHandler.class);
 
-    /**
-     * 序列化
-     */
-    private final ObjectMapper mapper = new ObjectMapper();
 
-    private final ChannelGroup group;
+    private final Session session;
 
     public ChatHandler(ChannelGroup group){
-        this.group = group;
+        this.session = new Session(group);
     }
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-
-
-    }
-
-    @Override
-    public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
-        if(evt == WebSocketClientProtocolHandler.ClientHandshakeStateEvent.HANDSHAKE_COMPLETE){
-            group.add(ctx.channel());
-        }else {
-            super.userEventTriggered(ctx,evt);
-        }
+        session.unbind(ctx.channel());
+        logger.info("channel 移除: {}",ctx.channel().id());
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        group.remove(ctx.channel());
+        session.unbind(ctx.channel());
+        logger.info("channel移除: {}",ctx.channel().id());
         logger.error("unExcept exception: ",cause);
     }
 
@@ -61,13 +51,35 @@ public class ChatHandler extends SimpleChannelInboundHandler<TextWebSocketFrame>
     protected void channelRead0(ChannelHandlerContext ctx, TextWebSocketFrame msg) throws Exception {
         Channel channel = ctx.channel();
         String text = msg.text();
-        DataContent dataContent = mapper.readValue(text, DataContent.class);
+        DataContent dataContent = JsonUtil.jsonToObject(text, DataContent.class);
         Integer actionId = dataContent.getActionId();
         if(Action.CONNECT.ordinal() == actionId){
-            Cache.putChannel(dataContent.getChatMsg().getSenderId(),channel);
+            session.bind(channel,dataContent.getChatMsg().getSenderId());
         }
         else if(Action.CHAT.ordinal() == actionId){
+            PersonalService service = SpringUtil.getBean(PersonalService.class);
+            Integer messageId = service.saveChatMsg(dataContent.getChatMsg());
+            if(messageId == -1){
+                logger.error("record message error");
+                return;
+            }
+            dataContent.getChatMsg().setMessageId(messageId);
+            Integer receiveId = dataContent.getChatMsg().getReceiveId();
+            Channel toChannel = session.getChannel(receiveId);
+            if(toChannel == null){
 
+            }else{
+                toChannel.writeAndFlush(new TextWebSocketFrame(JsonUtil.objectToJson(dataContent)));
+            }
+        }else if(Action.CLEAR.ordinal() == actionId){
+            ChatMsgDao service = SpringUtil.getBean(ChatMsgDao.class);
+            service.update(
+                    null,
+                    Wrappers.lambdaUpdate(ChatMsg.class)
+                    .set(ChatMsg::getSigned,"1")
+                    .eq(ChatMsg::getSenderId,dataContent.getClearMsg().getCurrentPageUserId())
+                    .eq(ChatMsg::getReceiveId,dataContent.getClearMsg().getCurrentUserId())
+            );
         }
     }
 
@@ -75,7 +87,9 @@ public class ChatHandler extends SimpleChannelInboundHandler<TextWebSocketFrame>
 
         CONNECT,
 
-        CHAT;
+        CHAT,
+
+        CLEAR
 
     }
 }

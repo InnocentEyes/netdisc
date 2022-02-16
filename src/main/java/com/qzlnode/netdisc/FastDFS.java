@@ -1,4 +1,4 @@
-package com.qzlnode.netdisc.fastdfs;
+package com.qzlnode.netdisc;
 
 import org.csource.common.MyException;
 import org.csource.fastdfs.*;
@@ -10,7 +10,8 @@ import org.springframework.util.Assert;
 import java.io.IOException;
 
 /**
- * @author qzlzz
+ * @// TODO: 2022/2/15 文件上传下载删除至FastDFS的工作 
+ * @author qzlzzz
  */
 @Component
 public class FastDFS {

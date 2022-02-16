@@ -84,6 +84,19 @@ public class CodeMsg {
      */
     public static CodeMsg DOCUMENT_TYPE_ERROR = new CodeMsg(500910,"文档文件类型错误");
 
+    /**
+     * 通信端
+     */
+    public static CodeMsg USER_NO_EXIST = new CodeMsg(600001,"用户不存在,:(");
+
+    public static CodeMsg NOT_YOURSELF = new CodeMsg(600002,"不能是自己,:|");
+
+    public static CodeMsg ALREADY_EXISTS = new CodeMsg(600003,"已存在该好友,:|");
+
+    public static CodeMsg IGNORE = new CodeMsg(600005,"忽略该好友请求");
+
+    public static CodeMsg ACCPET = new CodeMsg(600006,"通过该好友请求");
+
     public CodeMsg() {
     }
 

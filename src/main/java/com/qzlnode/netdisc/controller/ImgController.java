@@ -1,7 +1,7 @@
 package com.qzlnode.netdisc.controller;
 
 import com.qzlnode.netdisc.exception.UploadFileToLargeException;
-import com.qzlnode.netdisc.fastdfs.FastDFS;
+import com.qzlnode.netdisc.FastDFS;
 import com.qzlnode.netdisc.pojo.Img;
 import com.qzlnode.netdisc.result.CodeMsg;
 import com.qzlnode.netdisc.result.Result;

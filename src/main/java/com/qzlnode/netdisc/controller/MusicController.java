@@ -2,9 +2,8 @@ package com.qzlnode.netdisc.controller;
 
 import com.qzlnode.netdisc.exception.NoSuchFileException;
 import com.qzlnode.netdisc.exception.UploadFileToLargeException;
-import com.qzlnode.netdisc.fastdfs.FastDFS;
+import com.qzlnode.netdisc.FastDFS;
 import com.qzlnode.netdisc.pojo.Music;
-import com.qzlnode.netdisc.redis.MusicKey;
 import com.qzlnode.netdisc.result.CodeMsg;
 import com.qzlnode.netdisc.result.Result;
 import com.qzlnode.netdisc.service.AsyncService;
@@ -24,7 +23,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 

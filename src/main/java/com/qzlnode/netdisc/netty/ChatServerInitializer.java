@@ -15,11 +15,12 @@ import io.netty.handler.timeout.IdleStateHandler;
  */
 public class ChatServerInitializer extends ChannelInitializer<Channel> {
 
-    private final ChannelGroup group;
+    private final ChatHandler chatHandler;
 
     public ChatServerInitializer(ChannelGroup group){
-        this.group = group;
+        this.chatHandler = new ChatHandler(group);
     }
+
 
     @Override
     protected void initChannel(Channel channel) throws Exception {
@@ -29,6 +30,6 @@ public class ChatServerInitializer extends ChannelInitializer<Channel> {
         pipeline.addLast(new HttpObjectAggregator(6 * 1024));
         pipeline.addLast(new IdleStateHandler(8,10,12));
         pipeline.addLast(new WebSocketServerProtocolHandler("/ws"));
-        pipeline.addLast(new ChatHandler(group));
+        pipeline.addLast(chatHandler);
     }
 }

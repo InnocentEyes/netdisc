@@ -1,4 +1,4 @@
-package com.qzlnode.netdisc.redis;
+package com.qzlnode.netdisc.redis.key;
 
 public class MusicKey extends BasePrefix{
 

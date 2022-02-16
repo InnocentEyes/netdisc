@@ -17,6 +17,8 @@ public class Cache {
 
     private static final Map<Integer, Channel> channelCache = new ConcurrentHashMap<>();
 
+    private static final Map<Channel,Integer> userChannel = new ConcurrentHashMap<>();
+
     private static final ReentrantLock LOCK = new ReentrantLock();
 
     /**
@@ -72,25 +74,4 @@ public class Cache {
         }
     }
 
-
-    /**
-     *
-     * @param userId
-     * @param channel
-     */
-    public static void putChannel(Integer userId,Channel channel){
-        channelCache.put(userId,channel);
-    }
-
-    /**
-     *
-     * @param userId
-     */
-    public static void removeChannel(Integer userId){
-        channelCache.remove(userId);
-    }
-
-    public static void removeAllChannel(){
-        channelCache.clear();
-    }
 }

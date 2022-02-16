@@ -17,4 +17,7 @@ public class DataContent {
     //信息主体
     private ChatMsg chatMsg;
 
+    //标记消息已读
+    private ClearMsg clearMsg;
+
 }

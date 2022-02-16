@@ -3,9 +3,9 @@ package com.qzlnode.netdisc.service.Impl;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.qzlnode.netdisc.dao.ImgDao;
-import com.qzlnode.netdisc.fastdfs.FastDFS;
+import com.qzlnode.netdisc.FastDFS;
 import com.qzlnode.netdisc.pojo.Img;
-import com.qzlnode.netdisc.redis.ImgKey;
+import com.qzlnode.netdisc.redis.key.ImgKey;
 import com.qzlnode.netdisc.redis.RedisService;
 import com.qzlnode.netdisc.service.ImgService;
 import com.qzlnode.netdisc.util.FileInfoHandler;
@@ -20,9 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author qzlzzz

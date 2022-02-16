@@ -1,6 +1,7 @@
 package com.qzlnode.netdisc.redis;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.qzlnode.netdisc.redis.key.KeyPrefix;
 import com.qzlnode.netdisc.util.JsonUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

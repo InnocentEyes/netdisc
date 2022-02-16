@@ -4,12 +4,12 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.qzlnode.netdisc.dao.VideoCoverDao;
 import com.qzlnode.netdisc.dao.VideoDao;
-import com.qzlnode.netdisc.fastdfs.FastDFS;
+import com.qzlnode.netdisc.FastDFS;
 import com.qzlnode.netdisc.pojo.Video;
 import com.qzlnode.netdisc.pojo.VideoCover;
 import com.qzlnode.netdisc.redis.RedisService;
-import com.qzlnode.netdisc.redis.VideoCoverKey;
-import com.qzlnode.netdisc.redis.VideoKey;
+import com.qzlnode.netdisc.redis.key.VideoCoverKey;
+import com.qzlnode.netdisc.redis.key.VideoKey;
 import com.qzlnode.netdisc.service.VideoService;
 import com.qzlnode.netdisc.util.Cache;
 import com.qzlnode.netdisc.util.FileInfoHandler;
@@ -26,11 +26,9 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.locks.LockSupport;
-import java.util.stream.Collectors;
 
 /**
  * @author qzlzzz

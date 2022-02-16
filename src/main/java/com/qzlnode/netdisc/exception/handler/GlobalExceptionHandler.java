@@ -45,8 +45,8 @@ public class GlobalExceptionHandler {
     public Result handlerError(Exception exception, HttpServletRequest request){
         String realIp = Security.getIPAddress(request);
         MessageHolder.clearData();
-        logger.error("handler {} error. ip address is {}.\n" +
-                "the reason is {}",request.getRequestURL(),realIp,exception.getMessage());
-        return Result.error(CodeMsg.ERROR.fillArgs(exception.getMessage()));
+        logger.error("handler {} error. user ip address is {}.\n" +
+                "the reason is {}",request.getRequestURL(),realIp,exception.getCause().getMessage());
+        return Result.error(CodeMsg.ERROR.fillArgs(exception.getCause().getMessage()));
     }
 }

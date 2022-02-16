@@ -4,8 +4,8 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.qzlnode.netdisc.dao.MusicDao;
 import com.qzlnode.netdisc.pojo.Music;
-import com.qzlnode.netdisc.redis.DocumentKey;
-import com.qzlnode.netdisc.redis.MusicKey;
+import com.qzlnode.netdisc.redis.key.DocumentKey;
+import com.qzlnode.netdisc.redis.key.MusicKey;
 import com.qzlnode.netdisc.redis.RedisService;
 import com.qzlnode.netdisc.service.MusicService;
 import com.qzlnode.netdisc.util.Cache;
@@ -22,7 +22,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.locks.LockSupport;
 
