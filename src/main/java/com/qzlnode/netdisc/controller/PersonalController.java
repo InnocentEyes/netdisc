@@ -151,7 +151,7 @@ public class PersonalController {
             return Result.error(service.deleteFriendRequest(requestId));
         }
 
-        if(CodeMsg.ACCPET.getCode() != operation){
+        if(CodeMsg.ACCEPT.getCode() != operation){
             return Result.error(CodeMsg.ERROR.fillArgs("operation 参数错误.."));
         }
         service.passFriendRequest(senderId);

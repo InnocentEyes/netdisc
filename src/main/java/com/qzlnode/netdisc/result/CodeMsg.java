@@ -95,7 +95,7 @@ public class CodeMsg {
 
     public static CodeMsg IGNORE = new CodeMsg(600005,"忽略该好友请求");
 
-    public static CodeMsg ACCPET = new CodeMsg(600006,"通过该好友请求");
+    public static CodeMsg ACCEPT = new CodeMsg(600006,"通过该好友请求");
 
     public CodeMsg() {
     }

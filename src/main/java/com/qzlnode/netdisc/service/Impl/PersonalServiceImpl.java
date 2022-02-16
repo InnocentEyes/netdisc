@@ -19,7 +19,6 @@ import com.qzlnode.netdisc.redis.key.CountKey;
 import com.qzlnode.netdisc.redis.key.ImgKey;
 import com.qzlnode.netdisc.redis.key.UserKey;
 import com.qzlnode.netdisc.result.CodeMsg;
-import com.qzlnode.netdisc.result.Result;
 import com.qzlnode.netdisc.service.PersonalService;
 import com.qzlnode.netdisc.util.JsonUtil;
 import com.qzlnode.netdisc.util.MessageHolder;
@@ -264,7 +263,7 @@ public class PersonalServiceImpl extends ServiceImpl<UserDao, UserInfo> implemen
         Channel toChannel = Session.channelGet(senderId);
         if(toChannel != null){
             DataContent dataContent = new DataContent();
-            dataContent.setActionId(CodeMsg.ACCPET.getCode());
+            dataContent.setActionId(CodeMsg.ACCEPT.getCode());
             toChannel.writeAndFlush(new TextWebSocketFrame(
                     JsonUtil.objectToJson(dataContent)
             ));
