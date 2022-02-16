@@ -18,7 +18,7 @@ public class Video {
     @TableId(value = "video_id",type = IdType.AUTO)
     private Integer videoId;
 
-    @TableId(value = "video_cover_id",type = IdType.NONE)
+    @TableField(value = "video_cover_id")
     private Integer videoCoverId;
 
     @TableField("video_size")

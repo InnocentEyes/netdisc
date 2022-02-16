@@ -27,7 +27,7 @@ public class VideoCover {
     private Video video;
 
     @JsonIgnore
-    @TableId(value = "user_id",type = IdType.NONE)
+    @TableField(value = "user_id")
     private Integer userId;
 
     @TableField("video_origin_name")

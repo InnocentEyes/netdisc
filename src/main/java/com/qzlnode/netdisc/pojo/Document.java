@@ -16,29 +16,29 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@TableName("file")
+@TableName("document")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Document {
 
-    @TableId(value = "file_id",type = IdType.AUTO)
+    @TableId(value = "document_id",type = IdType.AUTO)
     private Integer fileId;
 
-    @TableId(value = "user_id",type = IdType.NONE)
+    @TableField(value = "user_id")
     @JsonIgnore
     private Integer userId;
 
-    @TableField("file_origin_name")
+    @TableField("document_origin_name")
     private String fileOriginName;
 
-    @TableField(value = "file_size")
+    @TableField(value = "document_size")
     private long fileSize;
 
-    @TableField(value = "file_type")
+    @TableField(value = "document_type")
     private String fileType;
 
     @TableField(value = "group_name")
     private String groupName;
 
-    @TableField(value = "file_remote_path")
+    @TableField(value = "document_remote_path")
     private String fileRemotePath;
 }

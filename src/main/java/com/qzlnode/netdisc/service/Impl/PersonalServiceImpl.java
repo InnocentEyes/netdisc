@@ -239,7 +239,7 @@ public class PersonalServiceImpl extends ServiceImpl<UserDao, UserInfo> implemen
 
     @Override
     public void saveFriend(Integer userId, Integer friendId) {
-        Friends friend = new Friends(userId, friendId);
+        Friends friend = new Friends(userId,friendId);
         friendDao.insert(friend);
     }
 

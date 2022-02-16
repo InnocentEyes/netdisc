@@ -35,7 +35,7 @@ public class ChatServer {
         return new ChatServerInitializer(group);
     }
 
-    private void destroy(){
+    public void destroy(){
         if(channel != null){
             channel.close();
         }

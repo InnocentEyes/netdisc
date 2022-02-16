@@ -21,7 +21,7 @@ public class Music {
     @TableId(value = "music_id",type = IdType.AUTO)
     private Integer musicId;
 
-    @TableId(value = "user_id",type = IdType.NONE)
+    @TableField(value = "user_id")
     @JsonIgnore
     private Integer userId;
 
