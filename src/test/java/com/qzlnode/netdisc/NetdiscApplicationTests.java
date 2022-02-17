@@ -35,10 +35,10 @@ class NetdiscApplicationTests {
     @Test
     void testIndex(){
         UserInfo userInfo = new UserInfo();
-        userInfo.setAccount("15322255046");
-        userInfo.setPassword("qzl200919yya");
-        userInfo.setName("qzlzzz");
-        userInfo.setRealName("邱泽林");
+        userInfo.setAccount("xxxx");
+        userInfo.setPassword("xxxx");
+        userInfo.setName("xxxx");
+        userInfo.setRealName("xxxxx");
         Assertions.assertTrue(indexService.registerService(userInfo));
     }
 
@@ -46,8 +46,8 @@ class NetdiscApplicationTests {
     @Test
     void testLogin(){
         UserInfo userInfo = new UserInfo();
-        userInfo.setAccount("15322255046");
-        userInfo.setPassword("qzl200919yya");
+        userInfo.setAccount("xxxxx");
+        userInfo.setPassword("xxxxx");
         Assertions.assertTrue(indexService.loginService(userInfo) != null);
     }
 
