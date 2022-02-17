@@ -77,7 +77,7 @@ public class VideoController {
         if(video == null){
             return Result.error(CodeMsg.FILE_UPLOAD_ERROR);
         }
-        asyncService.uploadVideo(file,video.getVideoCoverId(),MessageHolder.getUserId());
+        asyncService.uploadVideo(file,video.getVideoId(),MessageHolder.getUserId());
         return Result.success(videoCover,CodeMsg.SUCCESS);
     }
 
@@ -167,7 +167,7 @@ public class VideoController {
         }
         asyncService.uploadBatchVideo(
                 files,
-                videos.stream().map(Video::getVideoCoverId).toArray(Integer[]::new),
+                videos.stream().map(Video::getVideoId).toArray(Integer[]::new),
                 MessageHolder.getUserId()
         );
         return Result.success(covers,CodeMsg.SUCCESS);

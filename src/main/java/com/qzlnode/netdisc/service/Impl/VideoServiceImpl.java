@@ -88,7 +88,7 @@ public class VideoServiceImpl extends ServiceImpl<VideoCoverDao, VideoCover> imp
     @Override
     public Video handlerVideo(MultipartFile file,VideoCover videoCover) throws InvocationTargetException, IllegalAccessException {
         Video video = fileInfoHandler.fileInfoToBean(file,null,Video.class);
-        video.setVideoCoverId(videoCover.getVideoCoverId());
+        video.setVideoId(videoCover.getVideoId());
         int result = videoDao.insert(video);
         if(result != 1){
             logger.info("insert video to db error");
@@ -116,7 +116,7 @@ public class VideoServiceImpl extends ServiceImpl<VideoCoverDao, VideoCover> imp
         Cache.removeAsyncKey(key);
         video = videoDao.selectOne(
                 Wrappers.lambdaQuery(Video.class)
-                        .eq(Video::getVideoCoverId,coverId)
+                        .eq(Video::getVideoId,coverId)
         );
         if(video == null){
             return null;
@@ -143,7 +143,7 @@ public class VideoServiceImpl extends ServiceImpl<VideoCoverDao, VideoCover> imp
         if(cover.getVideo() == null) {
             cover.setVideo(videoDao.selectOne(
                     Wrappers.lambdaQuery(Video.class)
-                            .eq(Video::getVideoCoverId, coverId)
+                            .eq(Video::getVideoId, coverId)
             ));
         }
         redisService.set(VideoCoverKey.videoCover,String.valueOf(coverId),cover);
@@ -172,7 +172,7 @@ public class VideoServiceImpl extends ServiceImpl<VideoCoverDao, VideoCover> imp
         coverList.forEach(element -> {
             Video video = videoDao.selectOne(
                     Wrappers.lambdaQuery(Video.class)
-                            .eq(Video::getVideoCoverId,element.getVideoCoverId()));
+                            .eq(Video::getVideoId,element.getVideoId()));
             element.setVideo(video);
         });
         redisService.setSet(VideoCoverKey.videoCoverList,String.valueOf(userId),coverList);
@@ -217,7 +217,7 @@ public class VideoServiceImpl extends ServiceImpl<VideoCoverDao, VideoCover> imp
         Iterator<VideoCover> coverIterator = videoCovers.iterator();
         for (MultipartFile file : files) {
             Video video = fileInfoHandler.fileInfoToBean(file,null,Video.class);
-            video.setVideoCoverId(coverIterator.next().getVideoCoverId());
+            video.setVideoId(coverIterator.next().getVideoId());
             videos.add(video);
         }
         videos.forEach(element -> {
