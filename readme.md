@@ -3,6 +3,7 @@
 
 基于Jwt+Nginx+SpringBoot+(Netty+WebSocket)+Redis+Mysql+FastDFS实现的云盘加即时好友聊天，文件分享的系统。
 
+> http://xxxxxx.xxxx/groupName+xxxRemotePath是文件地址
 
 ### 登录接口
 
@@ -117,10 +118,10 @@
 
 `/user/header/init`: 初始化用户头像,以form-data形式传入,Post方式请求,请求头需要携带token
 
-![初始化用户头像.PNG](.\img\初始化用户头像.PNG)
+![初始化用户头像.PNG](https://github.com/InnocentEyes/netdisc/blob/master/img/%E5%88%9D%E5%A7%8B%E5%8C%96%E7%94%A8%E6%88%B7%E5%A4%B4%E5%83%8F.PNG)
 
 
-![初始化用户头像参数.PNG](.\img\初始化用户头像参数.PNG)
+![初始化用户头像参数.PNG](https://github.com/InnocentEyes/netdisc/blob/master/img/%E5%88%9D%E5%A7%8B%E5%8C%96%E7%94%A8%E6%88%B7%E5%A4%B4%E5%83%8F%E5%8F%82%E6%95%B0.PNG)
 
 成功后返回结果:
 
@@ -143,9 +144,9 @@
 
 `/user/header/change`: 更新用户头像,以form-data形式传入,Post方式请求,请求头需要携带token
 
-![更新用户头像.PNG](.\img\更新用户头像.PNG)
+![](https://github.com/InnocentEyes/netdisc/blob/master/img/%E6%9B%B4%E6%96%B0%E7%94%A8%E6%88%B7%E5%A4%B4%E5%83%8F.PNG)
 
-![更新用户头像格式.PNG](.\img\更新用户头像格式.PNG)
+![更新用户头像格式.PNG](https://github.com/InnocentEyes/netdisc/blob/master/img/%E6%9B%B4%E6%96%B0%E7%94%A8%E6%88%B7%E5%A4%B4%E5%83%8F%E6%A0%BC%E5%BC%8F.PNG)
 
 成功后返回结果:
 
@@ -172,11 +173,11 @@
 
 **好友之间即时聊天的实现**
 
-![好友聊天的即时实现.PNG](.\img\好友聊天的即时实现.PNG)
+![好友聊天的即时实现.PNG](https://github.com/InnocentEyes/netdisc/blob/master/img/%E5%A5%BD%E5%8F%8B%E8%81%8A%E5%A4%A9%E7%9A%84%E5%8D%B3%E6%97%B6%E5%AE%9E%E7%8E%B0.PNG)
 
 **启动netty服务器的时机**
 
-![启动netty服务器的时间.PNG](.\img\启动netty服务器的时间.PNG)
+![启动netty服务器的时间.PNG](https://github.com/InnocentEyes/netdisc/blob/master/img/%E5%90%AF%E5%8A%A8netty%E6%9C%8D%E5%8A%A1%E5%99%A8%E7%9A%84%E6%97%B6%E9%97%B4.PNG)
 
 
 
@@ -190,7 +191,7 @@
 > 请求头应该携带token
 
 
-![单文件上传.jpg](.\img\单文件上传.jpg)
+![单文件上传.jpg](https://github.com/InnocentEyes/netdisc/blob/master/img/%E5%8D%95%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0.jpg)
 
 
 上传成功后的json数据为:
@@ -217,9 +218,9 @@
 > 请求头应该携带token
 
 
-![请求头应携带token.jpg](.\img\请求头应携带token.jpg)
+![请求头应携带token.jpg](https://github.com/InnocentEyes/netdisc/blob/master/img/%E8%AF%B7%E6%B1%82%E5%A4%B4%E5%BA%94%E6%90%BA%E5%B8%A6token.jpg)
 
-![多文件上传.jpg](.\img\多文件上传.jpg)
+![多文件上传.jpg](https://github.com/InnocentEyes/netdisc/blob/master/img/%E5%A4%9A%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0.jpg)
 
 上传成功，返回数据:
 ```
@@ -262,7 +263,7 @@
 `/img/user`: 请求头依然需要携带token,其他不用携带参数，以Get方式请求就行:
 
 
-![获取用户图片.jpg](.\img\获取用户图片.jpg)
+![获取用户图片.jpg](https://github.com/InnocentEyes/netdisc/blob/master/img/%E8%8E%B7%E5%8F%96%E7%94%A8%E6%88%B7%E5%9B%BE%E7%89%87.jpg)
 
 成功后的，返回数据:
 
@@ -316,18 +317,18 @@
 
 `/img/download/{imgId}`: 下载图片的接口,以Get方式请求,注意{imgId}里面是你要下载图片的imgId,这在之前你请求图片数据然后展示渲染，数据里面有imgId.也就是说你需要以这个imgId写在url来作为请求,详情请看下图:
 
-![图片url.jpg](.\img\图片url.jpg)
+![图片url.jpg](https://github.com/InnocentEyes/netdisc/blob/master/img/%E5%9B%BE%E7%89%87url.jpg)
 
 
-![图片下载请求方式.jpg](.\img\图片下载请求方式.jpg)
+![图片下载请求方式.jpg](https://github.com/InnocentEyes/netdisc/blob/master/img/%E5%9B%BE%E7%89%87%E4%B8%8B%E8%BD%BD%E8%AF%B7%E6%B1%82%E6%96%B9%E5%BC%8F.jpg)
 
 成功后返回的数据:
 
-![图片下载.jpg](.\img\图片下载.jpg)
+![图片下载.jpg](https://github.com/InnocentEyes/netdisc/blob/master/img/%E5%9B%BE%E7%89%87%E4%B8%8B%E8%BD%BD.jpg)
 
 在浏览器的时候会有进度条,以谷歌浏览器为例:
 
-![谷歌.jpg](.\img\谷歌.jpg)
+![谷歌.jpg](https://github.com/InnocentEyes/netdisc/blob/master/img/%E8%B0%B7%E6%AD%8C.jpg)
 
 ### 视频上传
 
@@ -336,10 +337,10 @@
 > 请求头需要携带token
 
 
-![视频单文件上传.jpg](.\img\视频单文件上传.jpg)
+![视频单文件上传.jpg](https://github.com/InnocentEyes/netdisc/blob/master/img/%E8%A7%86%E9%A2%91%E5%8D%95%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0.jpg)
 
 
-![视频单文件上传格式.jpg](.\img\视频单文件上传格式.jpg)
+![视频单文件上传格式.jpg](https://github.com/InnocentEyes/netdisc/blob/master/img/%E8%A7%86%E9%A2%91%E5%8D%95%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0%E6%A0%BC%E5%BC%8F.jpg)
 
 成功后返回结果:
 
@@ -365,7 +366,7 @@
 
 > 请求头里面需要带有token
 
-![获取视频文件.jpg](.\img\获取视频文件.jpg)
+![获取视频文件.jpg](https://github.com/InnocentEyes/netdisc/blob/master/img/%E8%8E%B7%E5%8F%96%E8%A7%86%E9%A2%91%E6%96%87%E4%BB%B6.jpg)
 
 成功的结果数据:
 
@@ -390,7 +391,7 @@
 > 请求头里面需要带有token
 
 
-![获取视频文件的消息信息方式.PNG](.\img\获取视频文件的消息信息方式.PNG)
+![获取视频文件的消息信息方式.PNG](https://github.com/InnocentEyes/netdisc/blob/master/img/%E8%8E%B7%E5%8F%96%E8%A7%86%E9%A2%91%E6%96%87%E4%BB%B6%E7%9A%84%E6%B6%88%E6%81%AF%E4%BF%A1%E6%81%AF%E6%96%B9%E5%BC%8F.PNG)
 
 成功后返回的结果:
 
@@ -418,7 +419,7 @@
 `/video/user/get`: 此方法的接口，使用Get请求方式获得，无需携带参数，只需要请求头携带token:
 
 
-![获取视频文件的消息信息方式.PNG](.\img\获取视频文件的消息信息方式.PNG)
+![获取视频文件的消息信息方式.PNG](https://github.com/InnocentEyes/netdisc/blob/master/img/%E8%8E%B7%E5%8F%96%E8%A7%86%E9%A2%91%E6%96%87%E4%BB%B6%E7%9A%84%E6%B6%88%E6%81%AF%E4%BF%A1%E6%81%AF%E6%96%B9%E5%BC%8F.PNG)
 
 成功后返回的结果:
 ```
@@ -448,11 +449,11 @@
 
 > 请求头依然需要携带token
 
-![下载视频文件.PNG](.\img\下载视频文件.PNG)
+![下载视频文件.PNG](https://github.com/InnocentEyes/netdisc/blob/master/img/%E4%B8%8B%E8%BD%BD%E8%A7%86%E9%A2%91%E6%96%87%E4%BB%B6.PNG)
 
 成功后，以谷歌浏览器为例(与图片文件一致):
 
-![谷歌.jpg](.\img\谷歌.jpg)
+![谷歌.jpg](https://github.com/InnocentEyes/netdisc/blob/master/img/%E8%B0%B7%E6%AD%8C.jpg)
 
 ### 批量上传视频文件(限制是3个)
 
@@ -462,11 +463,11 @@
 
 > 请求头携带token
 
-![多文件上传方式携带token.PNG](.\img\多文件上传方式携带token.PNG)
+![多文件上传方式携带token.PNG](https://github.com/InnocentEyes/netdisc/blob/master/img/%E5%A4%9A%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0%E6%96%B9%E5%BC%8F%E6%90%BA%E5%B8%A6token.PNG)
 
 
 
-![多次上传视频文件方式.PNG](.\img\多次上传视频文件方式.PNG)
+![多次上传视频文件方式.PNG](https://github.com/InnocentEyes/netdisc/blob/master/img/%E5%A4%9A%E6%AC%A1%E4%B8%8A%E4%BC%A0%E8%A7%86%E9%A2%91%E6%96%87%E4%BB%B6%E6%96%B9%E5%BC%8F.PNG)
 
 成功后返回:
 
@@ -502,10 +503,10 @@
 > 请求头携带token
 
 
-![单文件上传音乐携带token.PNG](.\img\单文件上传音乐携带token.PNG)
+![单文件上传音乐携带token.PNG](https://github.com/InnocentEyes/netdisc/blob/master/img/%E5%8D%95%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0%E9%9F%B3%E4%B9%90%E6%90%BA%E5%B8%A6token.PNG)
 
 
-![单文件上传音乐文件.PNG](.\img\单文件上传音乐文件.PNG)
+![单文件上传音乐文件.PNG](https://github.com/InnocentEyes/netdisc/blob/master/img/%E5%8D%95%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0%E9%9F%B3%E4%B9%90%E6%96%87%E4%BB%B6.PNG)
 
 成功后返回结果:
 
@@ -534,7 +535,7 @@
 > 请求头携带token
 
 
-![获取音乐文件.PNG](.\img\获取音乐文件.PNG)
+![获取音乐文件.PNG](https://github.com/InnocentEyes/netdisc/blob/master/img/%E8%8E%B7%E5%8F%96%E9%9F%B3%E4%B9%90%E6%96%87%E4%BB%B6.PNG)
 
 成功后返回结果:
 
@@ -561,10 +562,10 @@
 `music/multi/upload`: 多文件上传接口,以form-data形式上传，上传的文件同一命名为musics,Post请求方式请求,请求头携带token:
 
 
-![批量上传音乐.PNG](.\img\批量上传音乐.PNG)
+![批量上传音乐.PNG](https://github.com/InnocentEyes/netdisc/blob/master/img/%E6%89%B9%E9%87%8F%E4%B8%8A%E4%BC%A0%E9%9F%B3%E4%B9%90.PNG)
 
 
-![批量上传音乐格式.PNG](.\img\批量上传音乐格式.PNG)
+![批量上传音乐格式.PNG](https://github.com/InnocentEyes/netdisc/blob/master/img/%E6%89%B9%E9%87%8F%E4%B8%8A%E4%BC%A0%E9%9F%B3%E4%B9%90%E6%A0%BC%E5%BC%8F.PNG)
 
 成功后,返回数据:
 
@@ -603,7 +604,7 @@
 `/music/user/get`: 此方法的接口，使用Get请求方式获得，无需携带参数，只需要请求头携带token:
 
 
-![获取用户所有音乐.PNG](.\img\获取用户所有音乐.PNG)
+![获取用户所有音乐.PNG](https://github.com/InnocentEyes/netdisc/blob/master/img/%E8%8E%B7%E5%8F%96%E7%94%A8%E6%88%B7%E6%89%80%E6%9C%89%E9%9F%B3%E4%B9%90.PNG)
 
 成功后的数据格式:
 
