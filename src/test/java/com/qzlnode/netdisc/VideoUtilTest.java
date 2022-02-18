@@ -4,7 +4,6 @@ import com.qzlnode.netdisc.pojo.VideoCover;
 import com.qzlnode.netdisc.util.JsonUtil;
 import com.qzlnode.netdisc.util.VideoUtil;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
 
 import java.io.*;
 import java.util.List;
