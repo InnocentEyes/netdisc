@@ -20,13 +20,13 @@
     "msg": "success :) ",
     "data": {
         "avatarUrl": null,
-        "account": "15322255046",
+        "account": "xxxxxx",
         "password": "cXpsMjAwOTE5eXlh",
         "createAt": "2022-02-17 05:36:39",
         "version": null,
         "userid": 1,
         "nickname": "qzlzzz",
-        "username": "邱泽林"
+        "username": "xxxx"
     }
 }
 ```
@@ -44,7 +44,7 @@
 `/register`: 需要以json格式的数据格式,Post请求方式上传至接口,如下:
 
 ```
-{"nickname": "qzxxxx","username": "邱泽鑫","account": "15875616710","password": "123456"}
+{"nickname": "qzxxxx","username": "xxxx","account": "xxxxxxxx","password": "123456"}
 ```
 - **nickname: 指的是用户的昵称**
 - **username: 指的是用户的真实姓名**
@@ -65,7 +65,7 @@
 
 - 用户的消息缺失,如
   ```
-  {"nickname": "qzxxxx","username": "邱泽鑫","password": "123456"}
+  {"nickname": "qzxxxx","username": "xxxxx","password": "123456"}
   ```
   返回如下:
     ```
@@ -95,7 +95,7 @@
 
 数据格式如下:
 ```
-{"nickname": "邱泽林啦啦啦"}//也可以同时修改密码
+{"nickname": "xxxxxxxx"}//也可以同时修改密码
 ```
 
 更新失败信息:
