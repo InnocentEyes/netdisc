@@ -3,7 +3,7 @@
 
 基于Jwt+Nginx+SpringBoot+(Netty+WebSocket)+Redis+Mysql+FastDFS实现的云盘加即时好友聊天，文件分享的系统。
 
-> http://xxxxxx.xxxx/groupName+xxxRemotePath是文件地址
+> **http://xxxxxx.xxxx/groupName+xxxRemotePath** 是文件地址
 
 ### 登录接口
 
