@@ -11,14 +11,14 @@ spring:
   datasource:
     druid:
       username: root
-      password: qzl200919yya
+      password: xxxxxxxx
       url: jdbc:mysql://localhost:3306/fastdfs
       driver-class-name: com.mysql.cj.jdbc.Driver
       stat-view-servlet:
         url-pattern: /druid/
         enabled: true
         login-username: lyy
-        login-password: 123456
+        login-password: xxxxxx
       web-stat-filter:
         enabled: true
         url-pattern: /*

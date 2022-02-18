@@ -20,48 +20,6 @@ class NetdiscApplicationTests {
     @Autowired
     private VideoDao videoDao;
 
-//    @Autowired
-//    private ImgService imgService;
-//
-//    @Autowired
-//    private PersonalService personalService;
-//
-//    @Autowired
-//    private MusicService musicService;
-//
-//    @Autowired
-//    private VideoService videoService;
-//
-//    @Autowired
-//    private AsyncService asyncService;
-
-    @DisplayName("测试Index接口的服务")
-    @Test
-    void testIndex(){
-        UserInfo userInfo = new UserInfo();
-        userInfo.setAccount("15322255046");
-        userInfo.setPassword("qzl200919yya");
-        userInfo.setName("qzlzzz");
-        userInfo.setRealName("邱泽林");
-        Assertions.assertTrue(indexService.registerService(userInfo));
-    }
-
-    @DisplayName("测试登录业务接口")
-    @Test
-    void testLogin(){
-        long startTime = System.currentTimeMillis();
-        UserInfo userInfo = new UserInfo();
-        userInfo.setAccount("15322255046");
-        userInfo.setPassword("qzl200919yya");
-        Assertions.assertTrue(indexService.loginService(userInfo) != null);
-        System.out.println((System.currentTimeMillis() - startTime) + "ms");
-    }
-
-    @Test
-    void testVideoDao(){
-        VideoCover videoCover = videoDao.queryCoverAndVideo(2, 1);
-        System.out.println(videoCover);
-    }
 
 
 }
