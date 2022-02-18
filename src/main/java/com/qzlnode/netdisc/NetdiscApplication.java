@@ -1,6 +1,5 @@
 package com.qzlnode.netdisc;
 
-import com.qzlnode.netdisc.util.SpringUtil;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;

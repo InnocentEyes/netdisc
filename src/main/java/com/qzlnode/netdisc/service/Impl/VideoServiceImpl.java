@@ -191,6 +191,7 @@ public class VideoServiceImpl extends ServiceImpl<VideoCoverDao, VideoCover> imp
             String[] uploadRes = fastDFS.upload(coverBytes,DEFAULT_COVER_TYPE);
             VideoCover cover = fileInfoHandler.pathToBean(uploadRes,VideoCover.class);
             cover.setVideoOriginName(file.getOriginalFilename());
+            cover.setVideoCoverType(DEFAULT_COVER_TYPE);
             cover.setUserId(MessageHolder.getUserId());
             covers.add(cover);
         }

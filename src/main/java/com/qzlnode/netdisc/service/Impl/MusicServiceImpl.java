@@ -35,7 +35,7 @@ import java.util.concurrent.locks.LockSupport;
         InvocationTargetException.class
 })
 @Service
-public class MusicServiceImpl extends ServiceImpl<MusicDao,Music> implements MusicService {
+public class MusicServiceImpl extends ServiceImpl<MusicDao, Music> implements MusicService {
 
     /**
      * 日志
@@ -56,15 +56,15 @@ public class MusicServiceImpl extends ServiceImpl<MusicDao,Music> implements Mus
     @Override
     public Music saveMusic(MultipartFile file)
             throws InvocationTargetException, IllegalAccessException {
-        if(file == null || file.getOriginalFilename() == null){
+        if (file == null || file.getOriginalFilename() == null) {
             return null;
         }
-        String fileNameInfo = file.getOriginalFilename().substring(0,file.getOriginalFilename().indexOf("."));
-        Music music = fileInfoHandler.fileInfoToBean(file,null,Music.class);
-        music = fileInfoHandler.handlerNameInfo(fileNameInfo,music);
+        String fileNameInfo = file.getOriginalFilename().substring(0, file.getOriginalFilename().indexOf("."));
+        Music music = fileInfoHandler.fileInfoToBean(file, null, Music.class);
+        music = fileInfoHandler.handlerNameInfo(fileNameInfo, music);
         music.setUserId(MessageHolder.getUserId());
         int result = musicDao.insert(music);
-        if(result != 1){
+        if (result != 1) {
             return null;
         }
         return music;
@@ -72,48 +72,48 @@ public class MusicServiceImpl extends ServiceImpl<MusicDao,Music> implements Mus
 
     @Override
     public Music getMusic(Integer musicId) {
-        Music music = redisService.get(MusicKey.music,String.valueOf(musicId),Music.class);
-        if(music != null){
+        Music music = redisService.get(MusicKey.music, String.valueOf(musicId), Music.class);
+        if (music != null) {
             return music;
         }
         String key = MusicKey.music.getPrefix() + MessageHolder.getUserId();
         String value = MusicKey.music.getPrefix() + musicId;
-        while (Cache.hasTask(key,value)){
+        while (Cache.hasTask(key, value)) {
             LockSupport.parkNanos(100);
         }
         Cache.removeAsyncKey(key);
         music = musicDao.selectOne(
                 Wrappers.lambdaQuery(Music.class)
-                        .eq(Music::getUserId,MessageHolder.getUserId())
-                        .eq(Music::getMusicId,musicId)
+                        .eq(Music::getUserId, MessageHolder.getUserId())
+                        .eq(Music::getMusicId, musicId)
         );
-        if(music == null){
+        if (music == null) {
             return null;
         }
-        redisService.set(MusicKey.music,String.valueOf(musicId),music);
-        redisService.setSet(MusicKey.musicList,String.valueOf(MessageHolder.getUserId()),music);
+        redisService.set(MusicKey.music, String.valueOf(musicId), music);
+        redisService.setSet(MusicKey.musicList, String.valueOf(MessageHolder.getUserId()), music);
         return music;
     }
 
     @Override
     public List<Music> getBatchMusic() {
         Integer userId = MessageHolder.getUserId();
-        String key = DocumentKey.document.getPrefix() + userId;
-        if(!Cache.hasTask(key)){
-            return redisService.getList(DocumentKey.documentList,String.valueOf(userId),Music.class);
+        String key = MusicKey.music.getPrefix() + userId;
+        if (!Cache.hasTask(key)) {
+            return redisService.getList(MusicKey.musicList, String.valueOf(userId), Music.class);
         }
-        while(Cache.hasTask(key)){
+        while (Cache.hasTask(key)) {
             LockSupport.parkNanos(100);
         }
         Cache.removeAsyncKey(key);
         List<Music> musicList = musicDao.selectList(
                 Wrappers.lambdaQuery(Music.class)
-                        .eq(Music::getUserId,userId)
+                        .eq(Music::getUserId, userId)
         );
-        if(musicList == null || musicList.size() == 0){
+        if (musicList == null || musicList.size() == 0) {
             return null;
         }
-        redisService.setSet(DocumentKey.documentList,String.valueOf(userId),musicList);
+        redisService.setSet(DocumentKey.documentList, String.valueOf(userId), musicList);
         return musicList;
     }
 
@@ -122,12 +122,14 @@ public class MusicServiceImpl extends ServiceImpl<MusicDao,Music> implements Mus
             throws InvocationTargetException, IllegalAccessException {
         List<Music> musicList = new ArrayList<>();
         for (MultipartFile file : files) {
-            Music music = fileInfoHandler.fileInfoToBean(file,null,Music.class);
+            String fileNameInfo = file.getOriginalFilename().substring(0, file.getOriginalFilename().indexOf("."));
+            Music music = fileInfoHandler.fileInfoToBean(file, null, Music.class);
+            music = fileInfoHandler.handlerNameInfo(fileNameInfo, music);
             music.setUserId(MessageHolder.getUserId());
             musicList.add(music);
         }
         boolean isSave = saveBatch(musicList);
-        if(!isSave){
+        if (!isSave) {
             return null;
         }
         return musicList;

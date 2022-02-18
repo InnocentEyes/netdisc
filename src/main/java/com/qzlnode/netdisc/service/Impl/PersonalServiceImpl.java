@@ -114,7 +114,7 @@ public class PersonalServiceImpl extends ServiceImpl<UserDao, UserInfo> implemen
      */
     @Override
     public boolean updateUserMsg(UserInfo userInfo) {
-        String userId = String.valueOf(userInfo.getId());
+        String userId = String.valueOf(MessageHolder.getUserId());
         boolean hasUpdateCount = redisService.exists(CountKey.updateCount, userId);
         if (hasUpdateCount) {
             int updateCount = redisService.get(CountKey.updateCount, userId, int.class);
@@ -123,7 +123,7 @@ public class PersonalServiceImpl extends ServiceImpl<UserDao, UserInfo> implemen
             }
         }
         boolean isUpdate = userDao.update(userInfo, Wrappers.lambdaUpdate(UserInfo.class)
-                .eq(UserInfo::getId, userInfo.getId())) == 1;
+                .eq(UserInfo::getId, MessageHolder.getUserId())) == 1;
         if (!hasUpdateCount && isUpdate) {
             return redisService.set(CountKey.updateCount, userId, 0);
         }

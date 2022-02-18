@@ -75,7 +75,7 @@ public class ImgServiceImpl extends ServiceImpl<ImgDao, Img> implements ImgServi
     @Override
     public Img getImg(Integer imgId) {
         Img img = redisService.get(ImgKey.img,String.valueOf(imgId),Img.class);
-        if(img != null){
+        if(img != null && img.getUserId().equals(MessageHolder.getUserId())){
             return img;
         }
         img = imgDao.selectOne(
@@ -83,6 +83,9 @@ public class ImgServiceImpl extends ServiceImpl<ImgDao, Img> implements ImgServi
                         .eq(Img::getImgId,imgId)
                         .eq(Img::getUserId,MessageHolder.getUserId())
         );
+        if(img == null){
+            return null;
+        }
         redisService.set(ImgKey.img,String.valueOf(imgId),img);
         redisService.setSet(ImgKey.imgList,String.valueOf(MessageHolder.getUserId()),img);
         return img;
@@ -95,7 +98,7 @@ public class ImgServiceImpl extends ServiceImpl<ImgDao, Img> implements ImgServi
     @Override
     public List<Img> getAllImg(){
         List<Img> images = redisService.getList(ImgKey.imgList,String.valueOf(MessageHolder.getUserId()),Img.class);
-        if(images != null || images.size() != 0){
+        if(images != null && images.size() != 0){
             return images;
         }
         List<Img> imgList = imgDao.selectList(

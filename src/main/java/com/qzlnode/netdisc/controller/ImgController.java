@@ -54,8 +54,11 @@ public class ImgController {
      * @return
      */
     @PostMapping("/single/upload")
-    public Result<Img> singleUpload(@RequestParam("img")MultipartFile img) throws IOException, MyException,
+    public Result<Img> singleUpload(@RequestParam(value = "img",required = false)MultipartFile img) throws IOException, MyException,
             InvocationTargetException, IllegalAccessException{
+        if (img == null){
+            return Result.error(CodeMsg.FILE_CANNOT_ACCPET);
+        }
         if(!fileInfoHandler.isSupport(img.getOriginalFilename(),Img.class)){
             return Result.error(CodeMsg.IMG_TYPE_ERROR);
         }
@@ -76,6 +79,9 @@ public class ImgController {
     @RequestMapping("/download/{imgId}")
     public ResponseEntity<byte[]> download(@PathVariable("imgId") Integer imgId) throws MyException, IOException {
         Img img = service.getImg(imgId);
+        if(img == null){
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
         String imgType = img.getImgType();
         HttpHeaders headers = new HttpHeaders();
         if(imgType.contains(IMG_PNG)){

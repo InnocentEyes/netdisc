@@ -28,7 +28,6 @@ public class Img{
     @TableId(type = IdType.AUTO)
     private Integer imgId;
 
-    @JsonIgnore
     private Integer userId;
 
     @TableField("img_origin_name")

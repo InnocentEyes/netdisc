@@ -10,6 +10,8 @@ import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.concurrent.ImmediateEventExecutor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -25,6 +27,8 @@ public class ChatServer {
     @Value("${netty.server.port}")
     private Integer serverPort;
 
+    private final Logger logger = LoggerFactory.getLogger(getClass());
+
     private final ChannelGroup channelGroup = new DefaultChannelGroup(ImmediateEventExecutor.INSTANCE);
 
     private final EventLoopGroup group = new NioEventLoopGroup();
@@ -36,10 +40,13 @@ public class ChatServer {
     }
 
     public void destroy(){
+        logger.info("chat server closing ...");
         if(channel != null){
             channel.close();
         }
         channelGroup.close();
+        group.shutdownGracefully();
+        logger.info("chat server closed");
     }
 
     public void start(InetSocketAddress address) throws InterruptedException {
@@ -52,7 +59,6 @@ public class ChatServer {
                 .channel();
         this.channel = channel;
         Runtime.getRuntime().addShutdownHook(new Thread(this::destroy));
-        channel.closeFuture().sync();
     }
 
     public Integer getServerPort(){

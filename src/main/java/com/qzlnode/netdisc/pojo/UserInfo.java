@@ -35,7 +35,6 @@ public class UserInfo {
 
     private String account;
 
-    @JsonIgnore
     private String password;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")

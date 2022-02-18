@@ -16,7 +16,7 @@ import com.qzlnode.netdisc.redis.key.VideoKey;
 import com.qzlnode.netdisc.service.AsyncService;
 import com.qzlnode.netdisc.util.Cache;
 import com.qzlnode.netdisc.util.Security;
-import com.qzlnode.netdisc.util.SpringUtil;
+import com.qzlnode.netdisc.SpringUtil;
 import org.csource.common.MyException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +41,10 @@ import java.util.Date;
 })
 @Service
 public class AsyncServiceImpl implements AsyncService {
+
+    static {
+        System.out.println("asyncServiceImpl");
+    }
 
     /**
      * 日志
@@ -206,12 +210,16 @@ public class AsyncServiceImpl implements AsyncService {
         UserInfo userInfo = userDao.selectById(userId);
         String realIp = Security.getIPAddress(request);
         SimpleDateFormat ft = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        logger.info("user id {} trueNamed {} phoned {} get the {} server in {} at {}",
-                userInfo.getId(),
-                userInfo.getRealName(),
-                userInfo.getAccount(),
-                request.getRequestURL(),
-                ft.format(new Date()),
-                realIp);
+        try {
+            logger.info("user id {} trueNamed {} phoned {} get the {} server in {} at {}",
+                    userInfo.getId(),
+                    userInfo.getRealName(),
+                    userInfo.getAccount(),
+                    request.getRequestURI() == null ? "null" : request.getRequestURI(),
+                    ft.format(new Date()),
+                    realIp);
+        }catch (Exception e){
+            logger.info("logger record error.");
+        }
     }
 }

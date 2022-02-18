@@ -53,7 +53,6 @@ public class PersonalController {
         userInfo = Optional.of(userInfo)
                 .filter(element -> element.getAccount() == null)
                 .filter(element -> element.getRealName() == null)
-                .filter(element -> element.getId() != null)
                 .filter(element -> {
                     return element.getName() != null && element.getName().length() < 10;
                 })
@@ -78,7 +77,12 @@ public class PersonalController {
         if (!target) {
             return Result.error(CodeMsg.FILE_DELETE_ERROR);
         }
-        String fileExtName = img.getOriginalFilename().split(".")[1];
+        String origin = img.getOriginalFilename();
+        String fileExtName;
+        if(!origin.contains(".")){
+            fileExtName = "png";
+        }
+        fileExtName = origin.substring(origin.lastIndexOf(".") + 1);
         String[] res = fastDFS.upload(img.getBytes(), fileExtName);
         target = service.saveHeader(res, MessageHolder.getUserId());
         if (!target) {
@@ -95,7 +99,15 @@ public class PersonalController {
      */
     @PostMapping(value = "/header/init", produces = MediaType.APPLICATION_JSON_VALUE)
     public Result<String> initHeader(@RequestParam(value = "header") MultipartFile img) throws IOException, MyException {
-        String fileExtName = img.getOriginalFilename().split(".")[1];
+        if(img.getOriginalFilename() == null){
+            return Result.error(CodeMsg.MESSAGE_ERROR);
+        }
+        String origin = img.getOriginalFilename();
+        String fileExtName;
+        if(!origin.contains(".")){
+            fileExtName = "png";
+        }
+        fileExtName = origin.substring(origin.lastIndexOf(".") + 1);
         String[] res = fastDFS.upload(img.getBytes(), fileExtName);
         if (!service.initHeader(res, MessageHolder.getUserId())) {
             logger.error("file upload error.");

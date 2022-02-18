@@ -4,6 +4,7 @@ import com.qzlnode.netdisc.result.CodeMsg;
 import com.qzlnode.netdisc.service.AsyncService;
 import com.qzlnode.netdisc.util.MessageHolder;
 import com.qzlnode.netdisc.util.Security;
+import com.qzlnode.netdisc.SpringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,19 +21,23 @@ public class LoginInterceptor implements HandlerInterceptor {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    @Autowired
     private AsyncService asyncService;
+
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+        if(asyncService == null) {
+            AsyncService asyncService = SpringUtil.getBean(AsyncService.class);
+            this.asyncService = asyncService;
+        }
         String token = request.getHeader("token");
         if(!Security.parseToken(token)){
-            asyncService.recordIpAddress(request);
+            this.asyncService.recordIpAddress(request);
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
             response.getOutputStream().print(CodeMsg.MESSAGE_ERROR.toString());
             return false;
         }
-        asyncService.recordUserAction(request, MessageHolder.getUserId());
+        this.asyncService.recordUserAction(request, MessageHolder.getUserId());
         return true;
     }
 

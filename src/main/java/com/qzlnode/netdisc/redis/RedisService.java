@@ -54,7 +54,7 @@ public class RedisService {
             return true;
         } catch (Exception ex) {
             logger.error("set key to redis error.\n" +
-                    "the reason is {}", ex.getMessage());
+                    "the reason is {}", ex.getCause().getMessage());
             return false;
         }
     }
@@ -79,7 +79,7 @@ public class RedisService {
             return true;
         } catch (Exception ex) {
             logger.error("set key to redis error.\n" +
-                    "the reason is {}", ex.getMessage());
+                    "the reason is {}", ex.getCause().getMessage());
             return false;
         }
     }
@@ -92,7 +92,7 @@ public class RedisService {
             return true;
         }catch (Exception ex) {
             logger.error("set key to redis error.\n" +
-                    "the reason is {}", ex.getMessage());
+                    "the reason is {}", ex.getCause().getMessage());
             return false;
         }
     }
@@ -109,11 +109,11 @@ public class RedisService {
     public <T> T get(KeyPrefix keyPrefix, String key, Class<T> claszz) {
         String realKey = keyPrefix.getPrefix() + key;
         try {
-            String json = redis.opsForValue().get(key);
+            String json = redis.opsForValue().get(realKey);
             return JsonUtil.jsonToObject(json, claszz);
         } catch (Exception ex) {
             logger.error("get key value from redis error.\n" +
-                    "the reason is {}", ex.getMessage());
+                    "the reason is {}", ex.getCause().getMessage());
             return null;
         }
     }
@@ -122,6 +122,7 @@ public class RedisService {
         String realKey = keyPrefix.getPrefix() + key;
         try {
             StringBuilder builder = new StringBuilder();
+            builder.append("[");
             redis.opsForSet()
                     .members(realKey)
                     .stream()
@@ -130,11 +131,14 @@ public class RedisService {
                         builder.append(element);
                         builder.append(",");
                     });
-            builder.delete(builder.length() - 1, builder.length());
+            if(builder.length() == 0){
+                return null;
+            }
+            builder.delete(builder.length() - 1, builder.length()).append("]");
             return JsonUtil.jsonToList(builder.toString(), memberClazz);
         } catch (Exception ex) {
             logger.error("get key value from redis error.\n" +
-                    "the reason is {}", ex.getMessage());
+                    "the reason is {}", ex.getCause().getMessage());
             return null;
         }
     }
@@ -151,7 +155,7 @@ public class RedisService {
             return redis.opsForValue().increment(keyPrefix.getPrefix() + key);
         } catch (Exception ex) {
             logger.error("incr error.\n" +
-                    "the reason is {}", ex.getMessage());
+                    "the reason is {}", ex.getCause().getMessage());
             return -1;
         }
     }
@@ -168,7 +172,7 @@ public class RedisService {
             return redis.opsForValue().decrement(keyPrefix.getPrefix() + key);
         } catch (Exception ex) {
             logger.error("decr error.\n" +
-                    "the reason is {}", ex.getMessage());
+                    "the reason is {}", ex.getCause().getMessage());
             return -1;
         }
     }
@@ -185,7 +189,7 @@ public class RedisService {
             return redis.delete(keyPrefix.getPrefix() + key);
         } catch (Exception ex) {
             logger.error("delete the key error.\n" +
-                    "the reason is {}", ex.getMessage());
+                    "the reason is {}", ex.getCause().getMessage());
             return false;
         }
     }
@@ -203,7 +207,7 @@ public class RedisService {
             return redis.hasKey(keyPrefix.getPrefix() + key);
         } catch (Exception ex) {
             logger.error("check the key in redis error.\n" +
-                    "the reason is {}", ex.getMessage());
+                    "the reason is {}", ex.getCause().getMessage());
             return false;
         }
     }

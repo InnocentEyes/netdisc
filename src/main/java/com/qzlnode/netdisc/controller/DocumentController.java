@@ -68,7 +68,7 @@ public class DocumentController {
     }
 
     @GetMapping("/getDetail/{documentId}")
-    public Result<Document> getMusic(@PathVariable("documentId") Integer fileId){
+    public Result<Document> getDocuemnt(@PathVariable("documentId") Integer fileId){
         if(fileId < 1){
             return Result.error(CodeMsg.SERVER_ERROR);
         }

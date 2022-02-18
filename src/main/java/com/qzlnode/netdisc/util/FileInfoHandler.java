@@ -4,7 +4,6 @@ import com.qzlnode.netdisc.pojo.Document;
 import com.qzlnode.netdisc.pojo.Img;
 import com.qzlnode.netdisc.pojo.Music;
 import com.qzlnode.netdisc.pojo.Video;
-import com.sun.javafx.scene.ImageViewHelper;
 import org.springframework.cglib.core.ReflectUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
@@ -33,7 +32,7 @@ public class FileInfoHandler {
 
     private static final String UNNAMED_SINGER = "未知歌手";
 
-    private static final String[] SUPPORT_MUSIC = {"mp3", "m4a", "wav", "amr", "awb", "mka", "m3u", "pls"};
+    private static final String[] SUPPORT_MUSIC = {"flac","mp3", "m4a", "wav", "amr", "awb", "mka", "m3u", "pls"};
 
     private static final String[] SUPPORT_VIDEO = {"mpeg", "mp4", "m4v", "mkv", "mpg", "rmvb", "avi"};
 
@@ -96,7 +95,7 @@ public class FileInfoHandler {
                 beanSetter.getWriteMethod().invoke(instance,resPath[0]);
             }
             if(name.contains(FILE_REMOTE_PATH)){
-                beanSetter.getWriteMethod().invoke(instance,resPath[0]);
+                beanSetter.getWriteMethod().invoke(instance,resPath[1]);
             }
         }
         return instance;
@@ -150,6 +149,17 @@ public class FileInfoHandler {
     }
 
     static {
-        System.out.println("FileInfoHandler已创建");
+        System.out.println("\n" +
+                "     _____ _ _      ___        __       _   _                 _ _           \n" +
+                "    |  ___(_) | ___|_ _|_ __  / _| ___ | | | | __ _ _ __   __| | | ___ _ __ \n" +
+                "    | |_  | | |/ _ \\| || '_ \\| |_ / _ \\| |_| |/ _` | '_ \\ / _` | |/ _ \\ '__|\n" +
+                "    |  _| | | |  __/| || | | |  _| (_) |  _  | (_| | | | | (_| | |  __/ |   \n" +
+                "    |_|   |_|_|\\___|___|_| |_|_|  \\___/|_| |_|\\__,_|_| |_|\\__,_|_|\\___|_|   \n" +
+                "                                                                            \n" +
+                "                                              _       \n" +
+                "                           ___ _ __ ___  __ _| |_ ___ \n" +
+                "                          / __| '__/ _ \\/ _` | __/ _ \\\n" +
+                "                         | (__| | |  __/ (_| | ||  __/\n" +
+                "                          \\___|_|  \\___|\\__,_|\\__\\___|");
     }
 }

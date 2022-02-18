@@ -23,7 +23,7 @@ public class ChatServerStarter implements ApplicationListener<ContextRefreshedEv
         if (event.getApplicationContext().getParent() == null){
             InetSocketAddress address = new InetSocketAddress(chatServer.getServerPort());
             try {
-                logger.info("netty starting....");
+                logger.info("chat server start at port {}",chatServer.getServerPort());
                 chatServer.start(address);
             } catch (InterruptedException e) {
                 chatServer.destroy();

@@ -2,10 +2,16 @@ netty:
   server:
     port: 8088
 spring:
+  servlet:
+    multipart:
+      enabled: true
+      max-request-size: 100MB
+      max-file-size: 30MB
+
   datasource:
     druid:
       username: root
-      password: qzl2009yya
+      password: qzl200919yya
       url: jdbc:mysql://localhost:3306/fastdfs
       driver-class-name: com.mysql.cj.jdbc.Driver
       stat-view-servlet:
@@ -33,7 +39,7 @@ spring:
   redis:
     port: 6379
     host: 192.168.119.130
-    database: 1
+    database: 0
     client-type: jedis
     jedis:
       pool:

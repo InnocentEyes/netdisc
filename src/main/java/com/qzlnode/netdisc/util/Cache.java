@@ -1,11 +1,8 @@
 package com.qzlnode.netdisc.util;
 
-import io.netty.channel.Channel;
-
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -14,10 +11,6 @@ import java.util.concurrent.locks.ReentrantLock;
 public class Cache {
 
     private static final Map<String,HashSet<String>> asyncCache = new HashMap<>();
-
-    private static final Map<Integer, Channel> channelCache = new ConcurrentHashMap<>();
-
-    private static final Map<Channel,Integer> userChannel = new ConcurrentHashMap<>();
 
     private static final ReentrantLock LOCK = new ReentrantLock();
 
@@ -42,10 +35,16 @@ public class Cache {
      * @return
      */
     public static boolean hasTask(String key,String value){
+        if(asyncCache.get(key) == null){
+            return false;
+        }
         return asyncCache.get(key).contains(value);
     }
 
     public static boolean hasTask(String key){
+        if(asyncCache.get(key) == null){
+            return false;
+        }
         return asyncCache.get(key).size() != 0;
     }
 
@@ -65,12 +64,15 @@ public class Cache {
     public static void removeAsyncKey(String key){
         LOCK.lock();
         try {
+            if(asyncCache.get(key) == null){
+                return;
+            }
             if (asyncCache.get(key).size() != 0){
                 return;
             }
             asyncCache.remove(key);
         }finally {
-            LOCK.lock();
+            LOCK.unlock();
         }
     }
 

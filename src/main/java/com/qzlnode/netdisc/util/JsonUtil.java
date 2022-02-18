@@ -24,6 +24,9 @@ public class JsonUtil {
     }
 
     public static <T> T jsonToObject(String json,Class<T> beanType){
+        if(json == null){
+            return null;
+        }
         try {
             T instance = MAPPER.readValue(json,beanType);
             return instance;
@@ -33,6 +36,9 @@ public class JsonUtil {
     }
 
     public static <T> List<T> jsonToList(String json,Class<T> beanType){
+        if(json == null){
+            return null;
+        }
         CollectionLikeType collectionLikeType = MAPPER.getTypeFactory().constructCollectionLikeType(List.class, beanType);
         try {
             List<T> list = MAPPER.readValue(json,collectionLikeType);

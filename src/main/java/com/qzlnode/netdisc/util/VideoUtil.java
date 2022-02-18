@@ -37,16 +37,10 @@ public class VideoUtil {
             }
             curFrame++;
         }while (curFrame < length);
-        int originWidth = frame.imageWidth;
-        int originHeight = frame.imageHeight;
-        int width = 800;
-        int height = (int) ((double)(width / originWidth) * originHeight);
         Java2DFrameConverter converter = new Java2DFrameConverter();
         BufferedImage image = converter.getBufferedImage(frame);
-        BufferedImage bi = new BufferedImage(width, height, BufferedImage.TYPE_4BYTE_ABGR);
-        bi.getGraphics().drawImage(image.getScaledInstance(width,height, Image.SCALE_SMOOTH),0,0,null);
         ByteArrayOutputStream imgStream = new ByteArrayOutputStream();
-        ImageIO.write(bi, "png", imgStream);
+        ImageIO.write(image, "png", imgStream);
         return imgStream.toByteArray();
     }
 }

@@ -1,15 +1,23 @@
-package com.qzlnode.netdisc.util;
+package com.qzlnode.netdisc;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 
 /**
  * @author qzlzzz
  */
+@Order(Ordered.HIGHEST_PRECEDENCE)
 public class SpringUtil implements ApplicationContextAware {
 
     private static ApplicationContext applicationContext;
+
+    private static final Logger logger = LoggerFactory.getLogger(SpringUtil.class);
+
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
@@ -19,6 +27,9 @@ public class SpringUtil implements ApplicationContextAware {
     }
 
     public static  ApplicationContext getApplicationContext(){
+        if (applicationContext == null){
+            logger.info("applicationContext is null");
+        }
         return applicationContext;
     }
 

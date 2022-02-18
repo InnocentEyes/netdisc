@@ -5,7 +5,7 @@ import com.qzlnode.netdisc.dao.ChatMsgDao;
 import com.qzlnode.netdisc.pojo.ChatMsg;
 import com.qzlnode.netdisc.service.PersonalService;
 import com.qzlnode.netdisc.util.JsonUtil;
-import com.qzlnode.netdisc.util.SpringUtil;
+import com.qzlnode.netdisc.SpringUtil;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;

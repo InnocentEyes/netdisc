@@ -1,5 +1,6 @@
 package com.qzlnode.netdisc.service.Impl;
 
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.qzlnode.netdisc.dao.UserDao;
 import com.qzlnode.netdisc.exception.HasPhoneException;
@@ -42,15 +43,15 @@ public class IndexServiceImpl extends ServiceImpl<UserDao, UserInfo> implements 
 
     @Override
     public boolean registerService(UserInfo userInfo) {
-        if(redisService.exists(UserKey.phone,userInfo.getAccount())){
+        if (redisService.exists(UserKey.phone, userInfo.getAccount())) {
             throw new HasPhoneException("电话号码已存在");
         }
         userInfo.setPassword(BASE64.encode(userInfo.getPassword()));
         int target = userDao.insert(userInfo);
-        if(target != 1){
+        if (target != 1) {
             throw new RegisterErrorException("注册失败");
         }
-        if(redisService.set(UserKey.phone,userInfo.getAccount(),userInfo)){
+        if (redisService.set(UserKey.phone, userInfo.getAccount(), userInfo)) {
             return true;
         }
         return false;
@@ -58,11 +59,22 @@ public class IndexServiceImpl extends ServiceImpl<UserDao, UserInfo> implements 
 
     @Override
     public UserInfo loginService(UserInfo userInfo) {
-        UserInfo res = redisService.get(UserKey.phone,userInfo.getAccount(),UserInfo.class);
-        if(res == null){
+        UserInfo res = redisService.get(UserKey.phone, userInfo.getAccount(), UserInfo.class);
+        if (res != null) {
+            if (BASE64.decode(res.getPassword()).equals(userInfo.getPassword())) {
+                return res;
+            }
             return null;
         }
-        if(BASE64.decode(res.getPassword()).equals(userInfo.getPassword())){
+        String password = BASE64.encode(userInfo.getPassword());
+        res = userDao.selectOne(
+                Wrappers.lambdaQuery(UserInfo.class)
+                        .eq(UserInfo::getAccount, userInfo.getAccount())
+                        .eq(UserInfo::getPassword, password)
+        );
+        if(res != null){
+            res.setPassword(password);
+            redisService.set(UserKey.phone, userInfo.getAccount(), res);
             return res;
         }
         return null;

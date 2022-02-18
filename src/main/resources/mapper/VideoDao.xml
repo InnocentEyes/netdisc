@@ -5,32 +5,31 @@
 <mapper namespace="com.qzlnode.netdisc.dao.VideoDao">
 
   <resultMap id="VideoResult" type="com.qzlnode.netdisc.pojo.Video">
-    <id column="video_id" property="videoId"/>
     <result column="video_size" property="videoSize"/>
     <result column="video_type" property="videoType"/>
     <result column="video_group_name" property="groupName"/>
     <result column="video_remote_path" property="videoRemotePath"/>
+    <result column="create_time" property="createTime"/>
   </resultMap>
 
   <resultMap id="VideoCordResult" type="com.qzlnode.netdisc.pojo.VideoCover">
-    <id column="video_cover_id" property="videoCoverId"/>
+    <id column="video_id" property="videoId"/>
     <id column="user_id" property="userId"/>
-    <result column="video_cover_size" property="videoCoverSize"/>
+    <result column="video_name" property="videoOriginName"/>
     <result column="video_cover_type" property="videoCoverType"/>
-    <result column="cover_group_name" property="groupName"/>
-    <result column="video_origin_name" property="videoOriginName"/>
+    <result column="group_name" property="groupName"/>
     <result column="video_cover_remote_path" property="videoCoverRemotePath"/>
+    <result column="create_time" property="createTime"/>
     <association property="video" resultMap="VideoResult"/>
   </resultMap>
   
   <select id="queryCoverAndVideo" resultMap="VideoCordResult">
     <if test="coverId != null and userId != null">
-      select `video_cover`.`video_cover_id`,`user_id`,`video_cover_size`,`video_cover_type`,`video_origin_name`
-             `video_cover`.`group_name` as `cover_group_name`,`video_cover_remote_path`,`video_id`,
-             `video`.`video_cover_id`,`video_size`,`video_type`,`video`.`group_name` as `video_group_name`,
+      select `video_cover`.`video_id`,`user_id`,`video_name`,`video_cover_type`,
+             `video_cover`.`group_name` as `cover_group_name`,`video_cover_remote_path`,
+             `video_size`,`video_type`,`video`.`group_name` as `video_group_name`,
              `video_remote_path` from `video_cover`,`video`
-      where `video_cover`.`user_id` = #{userId} and `video_cover`.`video_cover_id` = #{coverId} and
-            `video_cover`.`video_cover_id` = `video`.`video_id`
+      where `video_cover`.`user_id` = #{userId} and `video_cover`.`video_id` = #{coverId}
     </if>
   </select>
 </mapper>
