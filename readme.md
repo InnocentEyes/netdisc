@@ -10,7 +10,7 @@
 `/login`,需要以json格式的数据格式,Post方式上传至接口,如下:
 
 ```
-{"account": "15322255046","password": "qzl200919yya"}
+{"account": "xxxxx","password": "xxxxxx"}
 ```
 
 登录成功后,返回以下值:
