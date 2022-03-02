@@ -22,6 +22,8 @@ public class CodeMsg {
 
     public static CodeMsg MESSAGE_ERROR = new CodeMsg(500102,"验证失败,请检查请求头是否带有token");
 
+    public static CodeMsg UNENABLED = new CodeMsg(Integer.MAX_VALUE,"您已在黑名单,无法访问.");
+
 
     /**
      * 登录模块
@@ -34,12 +36,18 @@ public class CodeMsg {
 
     public static CodeMsg PASSWORD_ERROR = new CodeMsg(500213, "密码错误");
 
+    public static CodeMsg LOGIN_ERROR = new CodeMsg(500214,"登录失败. :(");
+
     /**
      * 注册模块
      */
     public static CodeMsg REGISTRATION_FAILED = new CodeMsg(500310,"注册失败");
 
     public static CodeMsg USER_MESSAGE_EMPTY = new CodeMsg(500311,"用户信息缺失");
+
+    public static CodeMsg GET_VERIFY_CODE_TO_MANY = new CodeMsg(500312,"今天的验证次数已用完");
+
+    public static CodeMsg VERIFY_CODE_NOT_EXIST = new CodeMsg(500313,"验证码错误");
 
     /**
      * 更新模块
@@ -137,6 +145,6 @@ public class CodeMsg {
 
     @Override
     public String toString() {
-        return "CodeMsg [code=" + code + ", msg=" + msg + "]";
+        return "{\"code\": "+code+",\"msg\":\""+msg+"\"}";
     }
 }

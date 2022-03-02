@@ -27,13 +27,13 @@ public class Security {
 
     private static final String TOKEN_KEY = UUID.randomUUID().toString();
 
-    private static final String SQUID = "X-Forwarded-For";
+    private static final String SQUID = "x-forwarded-for";
 
     private static final String APACHE = "Proxy-Client-IP";
 
     private static final String WEBLOGIC = "WL-Proxy-Client-IP";
 
-    private static final String NGINX = "X-Real-IP";
+    private static final String NGINX = "x-real-ip";
 
     private static final String OTHER =  "HTTP_CLIENT_IP";
 
@@ -106,7 +106,11 @@ public class Security {
             ipAddresses = request.getHeader(NGINX);
         }
         if(ipAddresses != null && ipAddresses.length() != 0){
-            ip = ipAddresses.split(",")[0];
+            if(ipAddresses.contains(",")){
+                ip = ipAddresses.substring(0,ipAddresses.indexOf(","));
+            }else {
+                ip = ipAddresses;
+            }
         }
         if(ip == null || ip.length() == 0 || UNKNOWN.equalsIgnoreCase(ipAddresses)){
             ip = request.getRemoteAddr();

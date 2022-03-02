@@ -1,6 +1,15 @@
 netty:
   server:
-    port: 8088
+    port: 8888
+tencent:
+  code-server:
+    sdkAppId: xxxxxx #填入自己短信应用的sdkId
+    templateId: xxxxxx #填入自己短信应用模板的Id
+    phonePerfix: '+86'
+  user-server:
+    secretId: xxxxxxx #腾讯云应用的用户的密钥
+    secretKey: xxxxxxxx #腾讯云应用的用户的密钥
+    region: xxxxxxxxx
 spring:
   servlet:
     multipart:
@@ -11,14 +20,14 @@ spring:
   datasource:
     druid:
       username: root
-      password: xxxxxxxx
-      url: jdbc:mysql://localhost:3306/fastdfs
+      password: xxxxxx
+      url: xxxxxx
       driver-class-name: com.mysql.cj.jdbc.Driver
       stat-view-servlet:
-        url-pattern: /druid/
+        url-pattern: /druid/*
         enabled: true
-        login-username: lyy
-        login-password: xxxxxx
+        login-username: xxxxx
+        login-password: xxxx
       web-stat-filter:
         enabled: true
         url-pattern: /*
@@ -38,7 +47,7 @@ spring:
       query-timeout: 3
   redis:
     port: 6379
-    host: 192.168.119.130
+    host: 127.0.0.1
     database: 0
     client-type: jedis
     jedis:
@@ -57,4 +66,4 @@ logging:
     com:
       qzlnode: info
   file:
-    name: C:/log/netdisc.log
+    name: /home/netdisc/execute.log

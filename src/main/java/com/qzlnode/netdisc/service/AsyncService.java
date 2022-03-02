@@ -68,4 +68,10 @@ public interface AsyncService {
      */
     void recordUserAction(HttpServletRequest request,Integer userId);
 
+    /**
+     * 调用腾讯云接口发送验证码
+     * @param code
+     */
+    void sendVerifyCode(String code,String phone);
+
 }

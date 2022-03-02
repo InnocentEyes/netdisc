@@ -43,8 +43,7 @@ public class ChatHandler extends SimpleChannelInboundHandler<TextWebSocketFrame>
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         session.unbind(ctx.channel());
-        logger.info("channel移除: {}",ctx.channel().id());
-        logger.error("unExcept exception: ",cause);
+        logger.error("channel移除: {}, 并发生错误: {}",ctx.channel().id(),cause);
     }
 
     @Override
@@ -61,7 +60,6 @@ public class ChatHandler extends SimpleChannelInboundHandler<TextWebSocketFrame>
             Integer messageId = service.saveChatMsg(dataContent.getChatMsg());
             if(messageId == -1){
                 logger.error("record message error");
-                return;
             }
             dataContent.getChatMsg().setMessageId(messageId);
             Integer receiveId = dataContent.getChatMsg().getReceiveId();

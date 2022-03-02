@@ -27,6 +27,9 @@ public class JsonUtil {
         if(json == null){
             return null;
         }
+        if (beanType == Integer.class || beanType == String.class){
+            return (T) json;
+        }
         try {
             T instance = MAPPER.readValue(json,beanType);
             return instance;

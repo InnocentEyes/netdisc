@@ -1,22 +1,31 @@
 package com.qzlnode.netdisc.service.Impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.qzlnode.netdisc.FastDFS;
+import com.qzlnode.netdisc.SpringUtil;
 import com.qzlnode.netdisc.dao.DocumentDao;
 import com.qzlnode.netdisc.dao.MusicDao;
 import com.qzlnode.netdisc.dao.UserDao;
 import com.qzlnode.netdisc.dao.VideoDao;
-import com.qzlnode.netdisc.FastDFS;
 import com.qzlnode.netdisc.pojo.Document;
 import com.qzlnode.netdisc.pojo.Music;
 import com.qzlnode.netdisc.pojo.UserInfo;
 import com.qzlnode.netdisc.pojo.Video;
+import com.qzlnode.netdisc.pojo.tencent.TenCentShortMessage;
+import com.qzlnode.netdisc.pojo.tencent.TencentUser;
+import com.qzlnode.netdisc.redis.RedisService;
 import com.qzlnode.netdisc.redis.key.DocumentKey;
 import com.qzlnode.netdisc.redis.key.MusicKey;
+import com.qzlnode.netdisc.redis.key.UserKey;
 import com.qzlnode.netdisc.redis.key.VideoKey;
 import com.qzlnode.netdisc.service.AsyncService;
 import com.qzlnode.netdisc.util.Cache;
 import com.qzlnode.netdisc.util.Security;
-import com.qzlnode.netdisc.SpringUtil;
+import com.tencentcloudapi.common.Credential;
+import com.tencentcloudapi.common.exception.TencentCloudSDKException;
+import com.tencentcloudapi.sms.v20210111.SmsClient;
+import com.tencentcloudapi.sms.v20210111.models.SendSmsRequest;
+import com.tencentcloudapi.sms.v20210111.models.SendSmsResponse;
 import org.csource.common.MyException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,15 +50,15 @@ import java.util.Date;
 })
 @Service
 public class AsyncServiceImpl implements AsyncService {
-
-    static {
-        System.out.println("asyncServiceImpl");
-    }
-
     /**
      * 日志
      */
     private final Logger logger = LoggerFactory.getLogger(getClass());
+
+    private final SmsClient smsClient;
+
+    @Autowired
+    private TenCentShortMessage shortMessage;
 
     @Autowired
     private FastDFS dfs;
@@ -65,6 +74,16 @@ public class AsyncServiceImpl implements AsyncService {
 
     @Autowired
     private UserDao userDao;
+
+    @Autowired
+    private RedisService redisService;
+
+
+    @Autowired
+    public AsyncServiceImpl(TencentUser user) {
+        Credential cred = new Credential(user.getSecretId(), user.getSecretKey());
+        this.smsClient = new SmsClient(cred, user.getRegion());
+    }
 
     @Async("asyncTaskExecutor")
     @Override
@@ -201,7 +220,21 @@ public class AsyncServiceImpl implements AsyncService {
     public void recordIpAddress(HttpServletRequest request) {
         String realIp = Security.getIPAddress(request);
         SimpleDateFormat ft = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        logger.info("{} get the {} server at {}", realIp, request.getRequestURL(), ft.format(new Date()));
+        try {
+            if (realIp != null) {
+                logger.info("log info: {}", realIp);
+                redisService.incr(UserKey.blackUser, realIp);
+            }
+            if (request.getRequestURI() == null) {
+                return;
+            }
+            logger.info("{} get the {} server at {}",
+                    realIp == null ? (request.getRemoteAddr() == null ? "null" : request.getRemoteAddr()) : realIp,
+                    request.getRequestURI(),
+                    ft.format(new Date()));
+        } catch (Exception e) {
+            logger.info("logger record error.", e);
+        }
     }
 
     @Async("loggerTaskExecutor")
@@ -211,15 +244,50 @@ public class AsyncServiceImpl implements AsyncService {
         String realIp = Security.getIPAddress(request);
         SimpleDateFormat ft = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         try {
+            if (request.getRequestURI() == null) {
+                logger.info("error happen at {}", ft.format(new Date()));
+                return;
+            }
             logger.info("user id {} trueNamed {} phoned {} get the {} server in {} at {}",
                     userInfo.getId(),
                     userInfo.getRealName(),
                     userInfo.getAccount(),
-                    request.getRequestURI() == null ? "null" : request.getRequestURI(),
+                    request.getRequestURI(),
                     ft.format(new Date()),
-                    realIp);
-        }catch (Exception e){
-            logger.info("logger record error.");
+                    realIp == null ? (request.getRemoteAddr() == null ? "null" : request.getRemoteAddr()) : realIp);
+        } catch (Exception e) {
+            logger.info("logger record error.", e);
+        }
+    }
+
+    /**
+     * 发送验证码
+     * @param code
+     * @param phone
+     */
+    @Async("asyncTaskExecutor")
+    @Override
+    public void sendVerifyCode(String code, String phone) {
+        SendSmsRequest sendSmsRequest = new SendSmsRequest();
+        //为请求设置SdkId 也即是短信应用的Id
+        sendSmsRequest.setSmsSdkAppId(shortMessage.getSdkAppId());
+        //设置发送短信的电话号码 +86xxxxxx
+        String[] phones = {shortMessage.getPhonePerfix() + phone};
+        sendSmsRequest.setPhoneNumberSet(phones);
+        //设置发送短信的模板
+        sendSmsRequest.setTemplateId(shortMessage.getTemplateId());
+        //为模板设置参数
+        String[] templateParam = {code, TenCentShortMessage.getExipreTime()};
+        sendSmsRequest.setTemplateParamSet(templateParam);
+        //为短信添加签名内容
+        sendSmsRequest.setSignName(TenCentShortMessage.getSign());
+        try {
+            //发送请求
+            SendSmsResponse response = smsClient.SendSms(sendSmsRequest);
+            logger.info("send message success, {}",response);
+        } catch (TencentCloudSDKException e) {
+            redisService.delete(UserKey.verifyCode,code);
+            logger.error("send verify message error. the reason is {}",e.getCause().getMessage());
         }
     }
 }

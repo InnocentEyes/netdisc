@@ -17,7 +17,7 @@ public class ClearDataAop {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    @After(value = "within(com.qzlnode.netdisc.controller..*)")
+    @After(value = "within(com.qzlnode.netdisc.controller..*) && !this(com.qzlnode.netdisc.controller.IndexController)")
     public void clearData(){
         MessageHolder.clearData();
         logger.info("clear threadLocal data success.");

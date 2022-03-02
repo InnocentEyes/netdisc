@@ -1,5 +1,6 @@
 package com.qzlnode.netdisc.interceptor;
 
+import com.qzlnode.netdisc.redis.RedisService;
 import com.qzlnode.netdisc.result.CodeMsg;
 import com.qzlnode.netdisc.service.AsyncService;
 import com.qzlnode.netdisc.util.MessageHolder;
@@ -15,6 +16,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.nio.charset.StandardCharsets;
 
 @Component
 public class LoginInterceptor implements HandlerInterceptor {
@@ -27,14 +29,13 @@ public class LoginInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         if(asyncService == null) {
-            AsyncService asyncService = SpringUtil.getBean(AsyncService.class);
-            this.asyncService = asyncService;
+            this.asyncService = SpringUtil.getBean(AsyncService.class);
         }
         String token = request.getHeader("token");
         if(!Security.parseToken(token)){
             this.asyncService.recordIpAddress(request);
-            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-            response.getOutputStream().print(CodeMsg.MESSAGE_ERROR.toString());
+            response.setContentType("application/json;charset=UTF-8");
+            response.getWriter().write(CodeMsg.MESSAGE_ERROR.toString());
             return false;
         }
         this.asyncService.recordUserAction(request, MessageHolder.getUserId());
